@@ -1,0 +1,9 @@
+[build]
+  publish = "."
+
+# Videresend /frost/* til Netlify Function som legger til auth mot Frost API
+[[redirects]]
+  from   = "/frost/*"
+  to     = "/.netlify/functions/frost"
+  status = 200
+  force  = true
