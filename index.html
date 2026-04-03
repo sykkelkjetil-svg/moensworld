@@ -1,1477 +1,263 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BikeFit — Finn din perfekte sykkelposisjon</title>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
-<style>
-:root {
-  --primary: #1a73e8;
-  --primary-dark: #1557b0;
-  --accent: #f5a623;
-  --bg: #f0f4f8;
-  --card: #ffffff;
-  --text: #202124;
-  --text-secondary: #5f6368;
-  --border: #dadce0;
-  --success: #34a853;
-  --danger: #e53935;
-  --radius: 14px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>moensworld</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-header {
-  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-  color: white; padding: 18px 28px;
-  display: flex; align-items: center; gap: 16px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.3);
-}
-.logo { font-size: 26px; font-weight: 900; letter-spacing: -1px; }
-.logo span { color: var(--accent); }
-.logo-sub { font-size: 13px; opacity: 0.65; margin-top: 2px; }
+    :root {
+      --bg:      #09090f;
+      --surface: #111120;
+      --border:  rgba(255,255,255,0.07);
+      --text:    #f0f0f8;
+      --muted:   rgba(255,255,255,0.38);
+      --accent:  #6c63ff;
+      --accent2: #00d2ff;
+    }
 
-.container { max-width: 980px; margin: 0 auto; padding: 24px 16px; }
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
 
-/* Step bar */
-.steps { display: flex; align-items: center; margin-bottom: 24px; }
-.step { display: flex; align-items: center; flex-shrink: 0; }
-.step-num {
-  width: 30px; height: 30px; border-radius: 50%;
-  background: var(--border); color: var(--text-secondary);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 13px; transition: all .3s;
-}
-.step.active .step-num { background: var(--primary); color: white; }
-.step.done .step-num { background: var(--success); color: white; }
-.step-lbl { font-size: 12px; color: var(--text-secondary); margin-left: 7px; font-weight: 500; white-space: nowrap; }
-.step.active .step-lbl { color: var(--primary); font-weight: 700; }
-.step-line { flex: 1; height: 2px; background: var(--border); margin: 0 6px; min-width: 16px; }
+    /* ── Ambient gradient background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%,  rgba(108,99,255,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%,  rgba(0,210,255,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 60% 30%,  rgba(255,80,120,0.07) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-/* Cards */
-.card { background: var(--card); border-radius: var(--radius); padding: 22px; margin-bottom: 18px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); border: 1px solid var(--border); }
-.card-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    /* ── Layout ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 20px 80px;
+    }
 
-/* Mode toggle */
-.mode-row { display: flex; gap: 12px; flex-wrap: wrap; }
-.mode-btn {
-  flex: 1; min-width: 130px; padding: 14px 18px;
-  border: 2px solid var(--border); border-radius: 10px;
-  background: white; cursor: pointer; text-align: left;
-  transition: all .2s; font-size: 15px; font-weight: 600;
-}
-.mode-btn .mode-icon { font-size: 26px; display: block; margin-bottom: 5px; }
-.mode-btn .mode-desc { font-size: 12px; color: var(--text-secondary); font-weight: 400; margin-top: 3px; }
-.mode-btn.active { border-color: var(--primary); background: #e8f0fe; }
+    /* ── Hero ── */
+    header {
+      width: 100%;
+      max-width: 900px;
+      padding: 72px 0 60px;
+      text-align: center;
+    }
 
-/* Bike types */
-.bike-types { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
-.bt-btn {
-  border: 2px solid var(--border); border-radius: 10px;
-  padding: 14px 10px; cursor: pointer; background: white;
-  text-align: center; transition: all .2s;
-}
-.bt-btn:hover { border-color: var(--primary); background: #f0f4ff; }
-.bt-btn.active { border-color: var(--primary); background: #e8f0fe; }
-.bt-icon { font-size: 28px; display: block; margin-bottom: 6px; }
-.bt-name { font-weight: 700; font-size: 13px; }
-.bt-desc { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+    .logo {
+      font-size: clamp(40px, 9vw, 68px);
+      font-weight: 800;
+      letter-spacing: -2.5px;
+      background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.5));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
 
-/* Position slider */
-.pos-labels { display: flex; justify-content: space-between; margin-bottom: 10px; }
-.pos-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-align: center; flex: 1; line-height: 1.3; }
-input[type=range] {
-  width: 100%; -webkit-appearance: none; height: 8px; border-radius: 4px;
-  background: linear-gradient(to right, #1a73e8, #f5a623, #34a853, #9c27b0);
-  outline: none; cursor: pointer;
-}
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
-  background: white; border: 3px solid var(--primary); cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-.pos-preview {
-  margin-top: 12px; padding: 10px 14px; background: #f0f4ff;
-  border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--primary);
-  text-align: center; border-left: 3px solid var(--primary);
-}
+    .logo .dot {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-/* Inputs */
-.input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 15px; }
-.inp-group { display: flex; flex-direction: column; gap: 5px; }
-.inp-group label { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-.help-btn {
-  width: 17px; height: 17px; border-radius: 50%; background: var(--border);
-  color: var(--text-secondary); font-size: 10px; border: none;
-  display: inline-flex; align-items: center; justify-content: center;
-  cursor: pointer; font-weight: 800; flex-shrink: 0;
-}
-.help-btn:hover { background: var(--primary); color: white; }
-.inp-wrap {
-  display: flex; align-items: center;
-  border: 2px solid var(--border); border-radius: 9px; overflow: hidden;
-  transition: border-color .2s;
-}
-.inp-wrap:focus-within { border-color: var(--primary); }
-.inp-wrap input {
-  flex: 1; border: none; outline: none; padding: 10px 12px;
-  font-size: 16px; font-weight: 600; background: transparent; color: var(--text);
-  width: 0;
-}
-.inp-unit {
-  padding: 0 10px; background: #f5f5f5; color: var(--text-secondary);
-  font-size: 12px; font-weight: 700; border-left: 1px solid var(--border);
-  height: 100%; display: flex; align-items: center; white-space: nowrap;
-}
-.inp-hint { font-size: 11px; color: var(--text-secondary); font-style: italic; }
+    .tagline {
+      margin-top: 18px;
+      font-size: 16px;
+      color: var(--muted);
+      letter-spacing: 0.2px;
+    }
 
-/* Calc button */
-.calc-btn {
-  width: 100%; padding: 16px; margin-top: 18px;
-  background: linear-gradient(135deg, #1a73e8, #0d47a1);
-  color: white; border: none; border-radius: 10px;
-  font-size: 17px; font-weight: 700; cursor: pointer;
-  transition: all .2s; box-shadow: 0 4px 14px rgba(26,115,232,0.35);
-  letter-spacing: 0.3px;
-}
-.calc-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(26,115,232,0.45); }
-.calc-btn:active { transform: translateY(0); }
+    /* ── Section label ── */
+    .section-label {
+      width: 100%;
+      max-width: 900px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+      padding-left: 2px;
+    }
 
-/* Results */
-.results-section { display: none; }
-.results-section.show { display: block; }
+    /* ── Grid ── */
+    .grid {
+      width: 100%;
+      max-width: 900px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 16px;
+    }
 
-.viz-card { background: white; border-radius: var(--radius); padding: 16px; margin-bottom: 18px; border: 1px solid var(--border); box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
-.viz-svg { width: 100%; max-width: 760px; display: block; margin: 0 auto; }
+    /* ── Card ── */
+    .card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 28px 26px 26px;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow: hidden;
+      transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+      cursor: pointer;
+    }
 
-.results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 11px; margin-bottom: 18px; }
-.res-item { background: white; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid var(--border); box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
-.res-val { font-size: 24px; font-weight: 900; color: var(--primary); line-height: 1; }
-.res-unit { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
-.res-lbl { font-size: 11px; color: var(--text-secondary); margin-top: 5px; font-weight: 500; }
+    /* Glow layer */
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255,255,255,0.13);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+    }
+    .card:hover::before { opacity: 1; }
 
-/* Recommendations */
-.rec-list { }
-.rec-item { display: flex; gap: 13px; padding: 13px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
-.rec-item:last-child { border-bottom: none; }
-.rec-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
-.rec-content h4 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
-.rec-content p { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+    .card-bike::before    { background: radial-gradient(ellipse at top left, rgba(108,99,255,0.14), transparent 65%); }
+    .card-weather::before { background: radial-gradient(ellipse at top left, rgba(0,210,255,0.12), transparent 65%); }
 
-/* Guide modal */
-.modal-bg {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.55); z-index: 200;
-  align-items: center; justify-content: center;
-}
-.modal-bg.show { display: flex; }
-.modal-box {
-  background: white; border-radius: 18px; padding: 26px;
-  max-width: 380px; width: 92%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-}
-.modal-box h3 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
-.modal-sub { font-size: 12px; color: var(--text-secondary); margin-bottom: 14px; }
-.modal-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
-.modal-close {
-  width: 100%; padding: 11px; background: var(--primary); color: white;
-  border: none; border-radius: 9px; font-size: 15px; font-weight: 700; cursor: pointer;
-}
+    .card-arrow {
+      position: absolute;
+      top: 24px; right: 22px;
+      font-size: 17px;
+      color: var(--muted);
+      transition: transform 0.2s, color 0.2s;
+    }
+    .card:hover .card-arrow { transform: translate(3px, -3px); color: #fff; }
 
-@media (max-width: 600px) {
-  .bike-types { grid-template-columns: repeat(3, 1fr); }
-  .input-grid { grid-template-columns: 1fr 1fr; }
-  .results-grid { grid-template-columns: repeat(2, 1fr); }
-  .steps { display: none; }
-}
+    .card-icon  { font-size: 38px; line-height: 1; }
 
-/* ===== PHOTO ANALYSIS ===== */
-.photo-badge {
-  display: inline-block; background: linear-gradient(135deg,#1a73e8,#9c27b0);
-  color: white; font-size: 10px; font-weight: 700; padding: 2px 8px;
-  border-radius: 10px; letter-spacing: 0.5px; vertical-align: middle; margin-left: 6px;
-}
-.photo-intro { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5; }
-.photo-tips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
-.photo-tip { background: #e8f5e9; color: #2e7d32; padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-.photo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: flex-end; margin-bottom: 4px; }
-.photo-row .inp-group { min-width: 0; }
-.photo-row .inp-wrap input { min-width: 0; width: 100%; }
-.upload-btn { width: 100%; }
-.upload-btn {
-  padding: 11px 20px; background: linear-gradient(135deg, #6a1b9a, #4a148c);
-  color: white; border: none; border-radius: 9px; font-size: 14px; font-weight: 700;
-  cursor: pointer; transition: all .2s; box-shadow: 0 3px 10px rgba(106,27,154,0.3);
-  white-space: nowrap;
-}
-.upload-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(106,27,154,0.4); }
-.photo-canvas-wrap {
-  position: relative; border-radius: 12px; overflow: hidden;
-  background: #111; margin-top: 14px; max-height: 600px;
-  display: flex; align-items: center; justify-content: center;
-}
-#pose-canvas { display: block; max-width: 100%; height: auto; }
-.photo-status {
-  margin-top: 12px; padding: 10px 15px; border-radius: 9px;
-  font-size: 13px; font-weight: 600; line-height: 1.5;
-}
-.ps-loading { background: #e3f2fd; color: #1565c0; }
-.ps-done    { background: #e8f5e9; color: #1b5e20; }
-.ps-error   { background: #fce4ec; color: #b71c1c; }
-.ps-warning { background: #fff8e1; color: #e65100; }
-.detected-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 14px 0 18px; }
-.det-item { background: #f3e5f5; border: 1px solid #ce93d8; border-radius: 10px; padding: 12px; text-align: center; }
-.det-val { font-size: 22px; font-weight: 900; color: #6a1b9a; }
-.det-unit { font-size: 12px; color: #7b1fa2; font-weight: 500; }
-.det-lbl { font-size: 11px; color: #7b1fa2; margin-top: 4px; font-weight: 500; }
-.det-conf { font-size: 10px; color: #9e9e9e; margin-top: 2px; }
-.use-meas-btn {
-  width: 100%; padding: 14px; background: linear-gradient(135deg, #2e7d32, #1b5e20);
-  color: white; border: none; border-radius: 9px; font-size: 15px; font-weight: 700;
-  cursor: pointer; transition: all .2s; box-shadow: 0 3px 10px rgba(46,125,50,0.3);
-}
-.use-meas-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(46,125,50,0.4); }
-.photo-note { font-size: 11px; color: var(--text-secondary); margin-top: 8px; text-align: center; }
-</style>
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+    }
+
+    .card-desc {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    /* ── Divider ── */
+    .divider {
+      width: 100%;
+      max-width: 900px;
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 52px 0 32px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      width: 100%;
+      max-width: 900px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    @media (max-width: 520px) {
+      header { padding: 52px 0 44px; }
+      .grid  { grid-template-columns: 1fr; }
+      footer { justify-content: center; text-align: center; }
+    }
+  </style>
 </head>
 <body>
+<div class="page">
 
-<header>
-  <div>
-    <div class="logo">Bike<span>Fit</span></div>
-    <div class="logo-sub">Finn din perfekte sykkelposisjon</div>
-  </div>
-</header>
+  <header>
+    <div class="logo">moens<span class="dot">world</span></div>
+    <p class="tagline">Personlige prosjekter innen sykkel og teknologi</p>
+  </header>
 
-<div class="container">
+  <p class="section-label">Prosjekter</p>
 
-  <!-- Step indicator -->
-  <div class="steps">
-    <div class="step active" id="s1"><div class="step-num">1</div><span class="step-lbl">Modus</span></div>
-    <div class="step-line"></div>
-    <div class="step" id="s2"><div class="step-num">2</div><span class="step-lbl">Sykkeltype</span></div>
-    <div class="step-line"></div>
-    <div class="step" id="s3"><div class="step-num">3</div><span class="step-lbl">Kjørestil</span></div>
-    <div class="step-line"></div>
-    <div class="step" id="s4"><div class="step-num">4</div><span class="step-lbl">Mål</span></div>
-    <div class="step-line"></div>
-    <div class="step" id="s5"><div class="step-num">5</div><span class="step-lbl">Resultat</span></div>
-  </div>
+  <div class="grid">
 
-  <!-- 1. Mode -->
-  <div class="card">
-    <div class="card-title">🎯 Velg modus</div>
-    <div class="mode-row">
-      <button class="mode-btn active" id="mb-simple" onclick="setMode('simple')">
-        <span class="mode-icon">⚡</span>
-        Enkel
-        <div class="mode-desc">Kun høyde — raskt og enkelt</div>
-      </button>
-      <button class="mode-btn" id="mb-advanced" onclick="setMode('advanced')">
-        <span class="mode-icon">🔬</span>
-        Avansert
-        <div class="mode-desc">Alle kroppsmål — presis tilpasning</div>
-      </button>
-    </div>
-  </div>
+    <a href="bikefit.html" class="card card-bike">
+      <span class="card-arrow">↗</span>
+      <div class="card-icon">🚴</div>
+      <div class="card-title">BikeFit AI</div>
+      <div class="card-desc">
+        Finn din perfekte sykkelposisjon med AI-basert posisjonsanalyse direkte i nettleseren. Last opp bilde eller bruk kamera.
+      </div>
+      <div class="card-tags">
+        <span class="tag">AI</span>
+        <span class="tag">Pose Detection</span>
+        <span class="tag">Sykkel</span>
+      </div>
+    </a>
 
-  <!-- 2. Bike type -->
-  <div class="card">
-    <div class="card-title">🚲 Sykkeltype</div>
-    <div class="bike-types">
-      <div class="bt-btn active" id="bt-road" onclick="setBike('road')">
-        <span class="bt-icon">🚴</span>
-        <div class="bt-name">Landevei</div>
-        <div class="bt-desc">Rask, aero</div>
+    <a href="vaerkart.html" class="card card-weather">
+      <span class="card-arrow">↗</span>
+      <div class="card-icon">⛅</div>
+      <div class="card-title">Norsk Vær Live</div>
+      <div class="card-desc">
+        Interaktivt værkart med live data fra Meteorologisk institutts Frost API. Temperatur, vind, nedbør og lynnedslag.
       </div>
-      <div class="bt-btn" id="bt-gravel" onclick="setBike('gravel')">
-        <span class="bt-icon">🛤️</span>
-        <div class="bt-name">Gravel</div>
-        <div class="bt-desc">Allround</div>
+      <div class="card-tags">
+        <span class="tag">Live data</span>
+        <span class="tag">Kart</span>
+        <span class="tag">Frost API</span>
       </div>
-      <div class="bt-btn" id="bt-mtb" onclick="setBike('mtb')">
-        <span class="bt-icon">🏔️</span>
-        <div class="bt-name">MTB</div>
-        <div class="bt-desc">Terreng</div>
-      </div>
-      <div class="bt-btn" id="bt-city" onclick="setBike('city')">
-        <span class="bt-icon">🏙️</span>
-        <div class="bt-name">By/Hybrid</div>
-        <div class="bt-desc">Daglig</div>
-      </div>
-      <div class="bt-btn" id="bt-tt" onclick="setBike('tt')">
-        <span class="bt-icon">⏱️</span>
-        <div class="bt-name">TT/Tri</div>
-        <div class="bt-desc">Maks aero</div>
-      </div>
-    </div>
+    </a>
+
   </div>
 
-  <!-- 3. Riding position -->
-  <div class="card">
-    <div class="card-title">🎚️ Kjørestil og posisjon</div>
-    <div class="pos-labels">
-      <span class="pos-label" style="text-align:left">🏁 Aggressiv<br><small>Race</small></span>
-      <span class="pos-label">⚡ Sport<br><small>Balansert</small></span>
-      <span class="pos-label">🌿 Komfort<br><small>Avslappet</small></span>
-      <span class="pos-label" style="text-align:right">🛋️ Oppreist<br><small>Touring</small></span>
-    </div>
-    <input type="range" id="pos-slider" min="0" max="3" step="1" value="1" oninput="updatePosPreview()">
-    <div class="pos-preview" id="pos-preview">⚡ Sport — Balansert mellom ytelse og komfort</div>
-  </div>
+  <hr class="divider" />
 
-  <!-- 4a. Photo analysis (optional) -->
-  <div class="card" id="photo-card">
-    <div class="card-title">📸 Mål kropp fra bilde <span class="photo-badge">AI</span></div>
-    <p class="photo-intro">
-      Last opp et bilde av deg selv, oppgi høyde, og AI-en beregner inseam, overkropp, armlengde og skulderbredde automatisk.
-      Verdiene fylles direkte inn i skjemaet under.
-    </p>
-    <div class="photo-tips">
-      <span class="photo-tip">🧍 Hel kropp synlig</span>
-      <span class="photo-tip">👀 Forsiden mot kamera</span>
-      <span class="photo-tip">💡 Godt lys, jevn bakgrunn</span>
-      <span class="photo-tip">👐 Armer langs siden</span>
-      <span class="photo-tip">👟 Stå rett og oppreist</span>
-    </div>
-    <div class="photo-row">
-      <div class="inp-group">
-        <label>Din høyde</label>
-        <div class="inp-wrap">
-          <input type="number" id="photo-height" placeholder="180" min="140" max="220">
-          <span class="inp-unit">cm</span>
-        </div>
-      </div>
-      <div class="inp-group">
-        <label style="visibility:hidden">Last opp</label>
-        <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)">
-        <button class="upload-btn" onclick="document.getElementById('photo-input').click()">📷 Last opp bilde</button>
-      </div>
-    </div>
+  <footer>
+    <span>moensworld.com</span>
+    <span>Laget med ❤︎ og nysgjerrighet</span>
+  </footer>
 
-    <div id="photo-ui" style="display:none">
-      <div class="photo-canvas-wrap">
-        <canvas id="pose-canvas"></canvas>
-      </div>
-      <div id="photo-status" class="photo-status ps-loading" style="display:none"></div>
-
-      <div id="detected-results" style="display:none">
-        <div class="detected-grid" id="detected-grid"></div>
-        <button class="use-meas-btn" onclick="applyPhotoMeasurements()">
-          ✅ Bruk disse målene — fyll inn skjema automatisk
-        </button>
-        <p class="photo-note">⚠️ AI-estimater — sjekk og juster gjerne verdiene manuelt i skjemaet under.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. Measurements -->
-  <div class="card">
-    <div class="card-title">📏 Kroppsmål</div>
-
-    <div id="inputs-simple">
-      <div class="input-grid">
-        <div class="inp-group">
-          <label>Høyde <button class="help-btn" onclick="showGuide('height')">?</button></label>
-          <div class="inp-wrap"><input type="number" id="h1" placeholder="180" min="140" max="220"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Total kroppshøyde uten sko</span>
-        </div>
-      </div>
-    </div>
-
-    <div id="inputs-advanced" style="display:none">
-      <div class="input-grid">
-        <div class="inp-group">
-          <label>Høyde <button class="help-btn" onclick="showGuide('height')">?</button></label>
-          <div class="inp-wrap"><input type="number" id="h2" placeholder="180" min="140" max="220"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Total kroppshøyde uten sko</span>
-        </div>
-        <div class="inp-group">
-          <label>Skritthøyde <button class="help-btn" onclick="showGuide('inseam')">?</button></label>
-          <div class="inp-wrap"><input type="number" id="inseam" placeholder="83" min="60" max="115"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Fra gulv til lyske (med bok)</span>
-        </div>
-        <div class="inp-group">
-          <label>Armspenn <button class="help-btn" onclick="showGuide('armspan')">?</button></label>
-          <div class="inp-wrap"><input type="number" id="armspan" placeholder="182" min="130" max="235"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Fingertipp til fingertipp</span>
-        </div>
-        <div class="inp-group">
-          <label>Overkropp <button class="help-btn" onclick="showGuide('torso')">?</button></label>
-          <div class="inp-wrap"><input type="number" id="torso" placeholder="60" min="40" max="85"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Fra lyske til skulder</span>
-        </div>
-        <div class="inp-group">
-          <label>Armlengde <button class="help-btn" onclick="showGuide('arm')">?</button></label>
-          <div class="inp-wrap"><input type="number" id="armlen" placeholder="62" min="40" max="90"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Fra skulder til håndledd</span>
-        </div>
-        <div class="inp-group">
-          <label>Skulderbredde <button class="help-btn" onclick="showGuide('shoulder')">?</button></label>
-          <div class="inp-wrap"><input type="number" id="shoulder" placeholder="42" min="28" max="62"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Skulder til skulder (ben)</span>
-        </div>
-      </div>
-    </div>
-
-    <button class="calc-btn" onclick="calculate()">📐 Beregn min sykkelfit</button>
-  </div>
-
-  <!-- 5. Results -->
-  <div class="results-section" id="results">
-
-    <div class="viz-card">
-      <div class="card-title" style="margin-bottom:10px">🚴 Din sykkelposisjon</div>
-      <svg class="viz-svg" viewBox="0 0 760 490" id="bike-svg" xmlns="http://www.w3.org/2000/svg"></svg>
-    </div>
-
-    <div class="card-title" style="margin: 4px 4px 12px;">📊 Anbefalte mål</div>
-    <div class="results-grid" id="res-grid"></div>
-
-    <div class="card rec-list" id="recs">
-      <div class="card-title">💡 Anbefalinger</div>
-    </div>
-
-  </div>
 </div>
-
-<!-- Guide modal -->
-<div class="modal-bg" id="modal" onclick="closeGuide()">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <h3 id="modal-title"></h3>
-    <div class="modal-sub" id="modal-sub"></div>
-    <svg id="modal-svg" width="220" height="200" style="display:block;margin:0 auto 14px" xmlns="http://www.w3.org/2000/svg"></svg>
-    <p id="modal-text"></p>
-    <button class="modal-close" onclick="closeGuide()">Lukk</button>
-  </div>
-</div>
-
-<script>
-// ===== STATE =====
-let mode = 'simple', bikeType = 'road', position = 1;
-
-const posInfo = [
-  { short: '🏁 Aggressiv', long: 'Race/Aero — Lav og lang, maksimal effektivitet' },
-  { short: '⚡ Sport',     long: 'Balansert mellom ytelse og komfort' },
-  { short: '🌿 Komfort',   long: 'Avslappet posisjon — passer lengre turer' },
-  { short: '🛋️ Oppreist', long: 'Touring/by — maksimal komfort og sikt' }
-];
-
-// ===== UI CONTROLS =====
-function setMode(m) {
-  mode = m;
-  document.getElementById('mb-simple').classList.toggle('active', m === 'simple');
-  document.getElementById('mb-advanced').classList.toggle('active', m === 'advanced');
-  document.getElementById('inputs-simple').style.display = m === 'simple' ? 'block' : 'none';
-  document.getElementById('inputs-advanced').style.display = m === 'advanced' ? 'block' : 'none';
-}
-
-function setBike(t) {
-  bikeType = t;
-  ['road','gravel','mtb','city','tt'].forEach(x => document.getElementById('bt-'+x).classList.toggle('active', x === t));
-}
-
-function updatePosPreview() {
-  position = parseInt(document.getElementById('pos-slider').value);
-  document.getElementById('pos-preview').textContent = posInfo[position].long;
-}
-
-// ===== GUIDES =====
-const guides = {
-  height: {
-    title: 'Mål høyde',
-    sub: 'Uten sko, stående rett',
-    text: 'Stå rett mot en vegg uten sko. Legg en bok flatt på toppen av hodet og merk av på veggen. Mål fra gulv til merket.',
-    draw(s) {
-      s.innerHTML = `
-        <circle cx="110" cy="28" r="14" fill="#2196F3"/>
-        <line x1="96" y1="42" x2="96" y2="115" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="42" x2="124" y2="115" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="96" y1="78" x2="75" y2="115" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="78" x2="145" y2="115" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="96" y1="115" x2="88" y2="165" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="115" x2="132" y2="165" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="70" y1="180" x2="155" y2="180" stroke="#bbb" stroke-width="2"/>
-        <line x1="155" y1="10" x2="155" y2="178" stroke="#E53935" stroke-width="2" stroke-dasharray="4,2"/>
-        <line x1="148" y1="13" x2="162" y2="13" stroke="#E53935" stroke-width="2"/>
-        <line x1="148" y1="178" x2="162" y2="178" stroke="#E53935" stroke-width="2"/>
-        <text x="168" y="100" fill="#E53935" font-size="12" font-weight="bold" transform="rotate(-90,168,100)">Høyde</text>
-      `;
-    }
-  },
-  inseam: {
-    title: 'Mål skritthøyde',
-    sub: 'Inseam — fra gulv til lyske',
-    text: 'Stå uten sko mot en vegg. Trykk en bok hardt opp i skrittet (som en sykkelsadel). Mål fra gulv til overkant av boken. Ta 2–3 målinger og bruk gjennomsnittet.',
-    draw(s) {
-      s.innerHTML = `
-        <circle cx="110" cy="28" r="14" fill="#2196F3"/>
-        <line x1="96" y1="42" x2="96" y2="115" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="42" x2="124" y2="115" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="96" y1="78" x2="75" y2="115" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="78" x2="145" y2="115" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="96" y1="115" x2="88" y2="165" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="115" x2="132" y2="165" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <rect x="82" y="110" width="56" height="10" fill="#f5a623" rx="3"/>
-        <line x1="70" y1="180" x2="155" y2="180" stroke="#bbb" stroke-width="2"/>
-        <line x1="155" y1="114" x2="155" y2="178" stroke="#f5a623" stroke-width="2.5" stroke-dasharray="4,2"/>
-        <line x1="148" y1="114" x2="162" y2="114" stroke="#f5a623" stroke-width="2.5"/>
-        <line x1="148" y1="178" x2="162" y2="178" stroke="#f5a623" stroke-width="2.5"/>
-        <text x="172" y="152" fill="#e65100" font-size="12" font-weight="bold" transform="rotate(-90,172,152)">Inseam</text>
-      `;
-    }
-  },
-  armspan: {
-    title: 'Mål armspenn',
-    sub: 'Fingertipp til fingertipp',
-    text: 'Stå med ryggen mot veggen. Strekk begge armene rett ut til siden i skulderhøyde. Mål fra fingertipp til fingertipp.',
-    draw(s) {
-      s.innerHTML = `
-        <circle cx="110" cy="60" r="14" fill="#2196F3"/>
-        <line x1="96" y1="74" x2="96" y2="140" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="74" x2="124" y2="140" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="20" y1="88" x2="200" y2="88" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="96" y1="140" x2="88" y2="185" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="140" x2="132" y2="185" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="20" y1="110" x2="200" y2="110" stroke="#E53935" stroke-width="2" stroke-dasharray="5,3"/>
-        <line x1="20" y1="104" x2="20" y2="116" stroke="#E53935" stroke-width="2.5"/>
-        <line x1="200" y1="104" x2="200" y2="116" stroke="#E53935" stroke-width="2.5"/>
-        <text x="110" y="130" fill="#E53935" font-size="12" font-weight="bold" text-anchor="middle">Armspenn</text>
-      `;
-    }
-  },
-  torso: {
-    title: 'Mål overkroppslengde',
-    sub: 'Fra lyske til skulder',
-    text: 'Sett deg på en stol med rett rygg. Mål fra der du sitter (hoften/lysken) opp til toppen av skulderen. Alternativt: høyde − skritthøyde = ca. overkropp.',
-    draw(s) {
-      s.innerHTML = `
-        <circle cx="110" cy="32" r="14" fill="#2196F3"/>
-        <line x1="96" y1="46" x2="96" y2="125" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="46" x2="124" y2="125" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="96" y1="85" x2="72" y2="120" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="85" x2="148" y2="120" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="155" y1="46" x2="155" y2="123" stroke="#f5a623" stroke-width="2.5" stroke-dasharray="4,2"/>
-        <line x1="148" y1="46" x2="162" y2="46" stroke="#f5a623" stroke-width="2.5"/>
-        <line x1="148" y1="123" x2="162" y2="123" stroke="#f5a623" stroke-width="2.5"/>
-        <text x="172" y="92" fill="#e65100" font-size="11" font-weight="bold" transform="rotate(-90,172,92)">Overkropp</text>
-      `;
-    }
-  },
-  arm: {
-    title: 'Mål armlengde',
-    sub: 'Fra skulder til håndledd',
-    text: 'Strekk armen rett ut. Mål fra skulderleddet (det harde benypunktet på utsiden) til håndleddet. Alternativt: (armspenn − skulderbredde) / 2.',
-    draw(s) {
-      s.innerHTML = `
-        <circle cx="55" cy="80" r="14" fill="#2196F3"/>
-        <line x1="55" y1="94" x2="55" y2="155" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="55" y1="108" x2="175" y2="108" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <circle cx="55" cy="108" r="7" fill="#2196F3" stroke="white" stroke-width="2"/>
-        <circle cx="175" cy="108" r="7" fill="#2196F3" stroke="white" stroke-width="2"/>
-        <line x1="55" y1="155" x2="46" y2="188" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="55" y1="130" x2="175" y2="130" stroke="#E53935" stroke-width="2" stroke-dasharray="4,3"/>
-        <line x1="55" y1="124" x2="55" y2="136" stroke="#E53935" stroke-width="2.5"/>
-        <line x1="175" y1="124" x2="175" y2="136" stroke="#E53935" stroke-width="2.5"/>
-        <text x="115" y="150" fill="#E53935" font-size="12" font-weight="bold" text-anchor="middle">Armlengde</text>
-      `;
-    }
-  },
-  shoulder: {
-    title: 'Mål skulderbredde',
-    sub: 'Biacromial — ben til ben',
-    text: 'Mål mellom de ytterste benpunktene på skuldrene (acromion — det harde punktet du kjenner på utsiden av skulderen, ikke muskelen). Vanligvis 36–48 cm.',
-    draw(s) {
-      s.innerHTML = `
-        <circle cx="110" cy="58" r="14" fill="#2196F3"/>
-        <line x1="96" y1="72" x2="96" y2="145" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="72" x2="124" y2="145" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="55" y1="88" x2="165" y2="88" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <circle cx="55" cy="88" r="8" fill="#f5a623" stroke="white" stroke-width="2"/>
-        <circle cx="165" cy="88" r="8" fill="#f5a623" stroke="white" stroke-width="2"/>
-        <line x1="55" y1="115" x2="165" y2="115" stroke="#E53935" stroke-width="2" stroke-dasharray="4,3"/>
-        <line x1="55" y1="108" x2="55" y2="122" stroke="#E53935" stroke-width="2.5"/>
-        <line x1="165" y1="108" x2="165" y2="122" stroke="#E53935" stroke-width="2.5"/>
-        <text x="110" y="140" fill="#E53935" font-size="11" font-weight="bold" text-anchor="middle">Skulderbredde</text>
-        <line x1="96" y1="145" x2="88" y2="188" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-        <line x1="124" y1="145" x2="132" y2="188" stroke="#2196F3" stroke-width="5" stroke-linecap="round"/>
-      `;
-    }
-  }
-};
-
-function showGuide(key) {
-  const g = guides[key];
-  document.getElementById('modal-title').textContent = g.title;
-  document.getElementById('modal-sub').textContent = g.sub;
-  document.getElementById('modal-text').textContent = g.text;
-  g.draw(document.getElementById('modal-svg'));
-  document.getElementById('modal').classList.add('show');
-}
-function closeGuide() { document.getElementById('modal').classList.remove('show'); }
-
-// ===== BIKE CONFIG =====
-const bikeConf = {
-  road:   { name: 'Landevei',  stackMod: 1.00, reachMod: 1.00, saddleMod: 1.000, setbackMod: 0,   barType: 'drop' },
-  gravel: { name: 'Gravel',    stackMod: 1.04, reachMod: 0.96, saddleMod: 1.000, setbackMod: 5,   barType: 'drop' },
-  mtb:    { name: 'MTB',       stackMod: 1.06, reachMod: 0.88, saddleMod: 0.980, setbackMod: -10, barType: 'flat' },
-  city:   { name: 'By/Hybrid', stackMod: 1.12, reachMod: 0.80, saddleMod: 0.960, setbackMod: 10,  barType: 'flat' },
-  tt:     { name: 'TT/Tri',    stackMod: 0.94, reachMod: 1.12, saddleMod: 1.010, setbackMod: -20, barType: 'aero' }
-};
-
-// ===== CALCULATIONS =====
-function calculate() {
-  let height, inseam, armspan, torso, armlen, shoulder;
-
-  if (mode === 'simple') {
-    height = parseFloat(document.getElementById('h1').value);
-    if (!height || height < 140 || height > 220) { alert('Skriv inn gyldig høyde (140–220 cm)'); return; }
-    inseam   = height * 0.462;
-    armspan  = height * 1.020;
-    torso    = height * 0.320;
-    armlen   = height * 0.345;
-    shoulder = height * 0.232;
-  } else {
-    height   = parseFloat(document.getElementById('h2').value);
-    inseam   = parseFloat(document.getElementById('inseam').value)   || 0;
-    armspan  = parseFloat(document.getElementById('armspan').value)  || 0;
-    torso    = parseFloat(document.getElementById('torso').value)    || 0;
-    armlen   = parseFloat(document.getElementById('armlen').value)   || 0;
-    shoulder = parseFloat(document.getElementById('shoulder').value) || 0;
-    if (!height || height < 140) { alert('Skriv inn høyde'); return; }
-    if (!inseam)   inseam   = height * 0.462;
-    if (!armspan)  armspan  = height * 1.020;
-    if (!torso)    torso    = height * 0.320;
-    if (!armlen)   armlen   = height * 0.345;
-    if (!shoulder) shoulder = height * 0.232;
-  }
-
-  const c = bikeConf[bikeType];
-  const pos = position;
-
-  // -- Saddle height (BB → top of saddle), mm
-  let saddleH = inseam * 0.883 * c.saddleMod * 10;
-  saddleH += [3, 0, -5, -12][pos]; // positional tweak mm
-
-  // -- Crank arm length mm
-  const inseamMm = inseam * 10;
-  let crank = inseamMm < 750 ? 165 : inseamMm < 800 ? 167.5 : inseamMm < 850 ? 170 : inseamMm < 900 ? 172.5 : inseamMm < 950 ? 175 : 177.5;
-  if (bikeType === 'mtb') crank = Math.max(165, crank - 2.5);
-
-  // -- Handlebar width mm
-  let hbw;
-  if (bikeType === 'road' || bikeType === 'tt') {
-    const base = shoulder * 10;
-    const opts = [360, 380, 400, 420, 440, 460];
-    hbw = opts.reduce((a, b) => Math.abs(b - base) < Math.abs(a - base) ? b : a);
-  } else if (bikeType === 'mtb') {
-    const base = shoulder * 17;
-    const opts = [680, 720, 760, 800, 820];
-    hbw = opts.reduce((a, b) => Math.abs(b - base) < Math.abs(a - base) ? b : a);
-  } else {
-    const base = shoulder * 11;
-    const opts = [400, 420, 440, 460, 480, 500];
-    hbw = opts.reduce((a, b) => Math.abs(b - base) < Math.abs(a - base) ? b : a);
-  }
-
-  // -- Reach mm (horizontal BB → bar center)
-  // Empirisk base: inseam * 0.50 er et godt utgangspunkt for sport-posisjon
-  let reachBase = inseamMm * 0.50;
-  // Avansert: juster for armproporsjon (lang armspenn → mer reach)
-  if (mode === 'advanced' && armspan && height) {
-    reachBase += (armspan - height) * 1.8; // mm justering per cm avvik fra normalproporsjon
-  }
-  const posReachMod = [1.08, 1.00, 0.93, 0.84][pos];
-  const reach = Math.round(reachBase * c.reachMod * posReachMod);
-
-  // -- Bar drop relativt til sadelen (mm)
-  // Positivt = styre UNDER sadelen (normal for landevei/aggressiv)
-  // Negativt = styre OVER sadelen (by/komfort)
-  const baseDropByPos = [80, 40, 5, -30][pos]; // mm, road-referanse
-  const bikeDropAdj   = { road: 0, gravel: 20, mtb: 50, city: 70, tt: -20 };
-  const barDrop = Math.round(baseDropByPos - (bikeDropAdj[bikeType] || 0));
-
-  // -- Stack mm (vertikal BB → styre topp)
-  // Stack = sadelhøyde − bardrop  (bardrop positiv = styre lavere enn sadel)
-  const stack = Math.round(saddleH - barDrop);
-
-  // -- Saddle setback mm (behind BB vertical)
-  const setback = 65 + c.setbackMod + [-5, 0, 5, 10][pos];
-
-  // -- Stem length mm
-  const stemBase = [115, 90, 70, 45][pos];
-  let stem = stemBase;
-  if (bikeType === 'mtb') stem = Math.max(35, stem - 30);
-  if (bikeType === 'tt')  stem = Math.min(140, stem + 20);
-
-  // -- Frame size estimate
-  const fs =
-    height < 158 ? 'XXS (44 cm)' : height < 163 ? 'XS (47 cm)' : height < 168 ? 'XS/S (49 cm)' :
-    height < 173 ? 'S (51 cm)'   : height < 177 ? 'S/M (53 cm)': height < 181 ? 'M (55 cm)' :
-    height < 185 ? 'M/L (57 cm)' : height < 189 ? 'L (59 cm)'  : height < 194 ? 'L/XL (61 cm)' : 'XL (63+ cm)';
-
-  renderResults({
-    saddleH: Math.round(saddleH), crank, hbw, reach, stack, barDrop,
-    setback: Math.round(setback), stem, fs,
-    heightMm: Math.round(height * 10), inseamMm: Math.round(inseam * 10),
-    shoulderMm: Math.round(shoulder * 10)
-  });
-}
-
-// ===== RENDER RESULTS =====
-function renderResults(r) {
-  document.getElementById('results').classList.add('show');
-  setTimeout(() => document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-
-  // Steps
-  ['s1','s2','s3','s4'].forEach(id => {
-    document.getElementById(id).classList.remove('active');
-    document.getElementById(id).classList.add('done');
-  });
-  document.getElementById('s5').classList.add('active');
-
-  // Draw SVG
-  drawBike(r);
-
-  // Result cards
-  const dropStr = r.barDrop >= 0 ? `−${r.barDrop}` : `+${Math.abs(r.barDrop)}`;
-  document.getElementById('res-grid').innerHTML = `
-    <div class="res-item">
-      <div class="res-val">${r.saddleH}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Sadelhøyde (BB→sadel)</div>
-    </div>
-    <div class="res-item">
-      <div class="res-val">${r.crank}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Krankarmlengde</div>
-    </div>
-    <div class="res-item">
-      <div class="res-val">${r.hbw}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Styrebredde</div>
-    </div>
-    <div class="res-item">
-      <div class="res-val">${r.reach}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Reach</div>
-    </div>
-    <div class="res-item">
-      <div class="res-val">${r.stack}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Stack</div>
-    </div>
-    <div class="res-item">
-      <div class="res-val">${dropStr}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Styre vs. sadel</div>
-    </div>
-    <div class="res-item">
-      <div class="res-val">${r.setback}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Sadelsetback</div>
-    </div>
-    <div class="res-item">
-      <div class="res-val">${r.stem}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Styrestamme</div>
-    </div>
-    <div class="res-item" style="grid-column:span 2">
-      <div class="res-val" style="font-size:18px">${r.fs}</div>
-      <div class="res-lbl">Rammestørrelse (estimat)</div>
-    </div>
-  `;
-
-  // Recommendations
-  const barRelStr = r.barDrop >= 0
-    ? `${r.barDrop} mm under sadelen`
-    : `${Math.abs(r.barDrop)} mm over sadelen`;
-
-  document.getElementById('recs').innerHTML = `
-    <div class="card-title">💡 Anbefalinger</div>
-    <div class="rec-item">
-      <div class="rec-icon">🎯</div>
-      <div class="rec-content">
-        <h4>Sadelhøyde: ${r.saddleH} mm</h4>
-        <p>Mål fra midten av tråkkakselen (BB) til toppen av setet. Kneet skal ha 145–155° bøy ved bunnen av pedalsyklusen. Juster i 3 mm-skritt og gi kroppen noen turer mellom hver endring.</p>
-      </div>
-    </div>
-    <div class="rec-item">
-      <div class="rec-icon">⚖️</div>
-      <div class="rec-content">
-        <h4>Sadelsetback: ${r.setback} mm bak BB</h4>
-        <p>Med pedalene vannrett skal midten av kneet peke rett ned over pedalaksen (KOPS-metoden). Bruk en loddsnor fra kneleddet for å sjekke. Sadelskinner gir typisk 20–30 mm justeringsrom.</p>
-      </div>
-    </div>
-    <div class="rec-item">
-      <div class="rec-icon">🔩</div>
-      <div class="rec-content">
-        <h4>Krankarmlengde: ${r.crank} mm</h4>
-        <p>Basert på skritthøyden din. Kortere krankarmer gir jevnere pedalslag og reduserer hoftebelastning — spesielt gunstig for ${bikeType === 'mtb' ? 'MTB og terrengkjøring' : 'landeveiskjøring og høy kadens'}.</p>
-      </div>
-    </div>
-    <div class="rec-item">
-      <div class="rec-icon">📏</div>
-      <div class="rec-content">
-        <h4>Styrebredde: ${r.hbw} mm</h4>
-        <p>${bikeType === 'road' || bikeType === 'tt'
-          ? 'For drop-styre: match skulderbredden (biacromial). Smalere gir bedre aerodynamikk, bredere øker stabiliteten.'
-          : bikeType === 'mtb'
-          ? 'Bredere styre gir bedre kontroll i terreng. Klipp til ønsket bredde — start bredt og kutt til du finner komfortzonen.'
-          : 'Match skulderbredden pluss ~10 cm for god komfort og kontroll.'}</p>
-      </div>
-    </div>
-    <div class="rec-item">
-      <div class="rec-icon">📐</div>
-      <div class="rec-content">
-        <h4>Stack/Reach: ${r.stack}/${r.reach} mm</h4>
-        <p>Disse er rammegeometrimålene. Sammenlign med produsentenes geometritabeller for å finne riktig ramme. Styrestammelengde (≈${r.stem} mm) og høyde på stigerøret finjusterer posisjonen.</p>
-      </div>
-    </div>
-    <div class="rec-item">
-      <div class="rec-icon">📊</div>
-      <div class="rec-content">
-        <h4>Styret er ${barRelStr}</h4>
-        <p>${r.barDrop >= 0
-          ? `${posInfo[position].short}-posisjon gir dette droppet. Bruk spacers under styrestammen for å heve styret, eller juster stammevinkel.`
-          : `Styret er høyere enn sadelen — typisk for komfort- og byposisjon.`}</p>
-      </div>
-    </div>
-    <div class="rec-item">
-      <div class="rec-icon">⚠️</div>
-      <div class="rec-content">
-        <h4>Test og juster gradvis</h4>
-        <p>Disse verdiene er et solid utgangspunkt. Gjør én endring av gangen — vent 2–3 turer før neste. Vedvarende smerter i kne, rygg eller nakke? Oppsøk en profesjonell bikefitter.</p>
-      </div>
-    </div>
-  `;
-}
-
-// ===== SVG BIKE VISUALIZATION =====
-function drawBike(r) {
-  const svg = document.getElementById('bike-svg');
-  const SC = 0.27; // px per mm
-
-  // Fixed reference
-  const ground = 455;
-  const WR = 90; // wheel radius px
-  const rearX = 145, rearY = ground - WR;
-  const frontX = 435, frontY = ground - WR;
-  const bbX = 242, bbY = ground - Math.round(290 * SC); // BB ~290mm above ground
-
-  // Saddle
-  const saddleH_px = r.saddleH * SC;
-  const setback_px = r.setback * SC;
-  const sadelX = bbX - setback_px;
-  const sadelY = bbY - saddleH_px;
-
-  // Bar
-  const reach_px = r.reach * SC;
-  const stack_px = r.stack * SC;
-  const barX = bbX + reach_px;
-  const barY = bbY - stack_px;
-
-  // Crank / pedal bottom
-  const crank_px = r.crank * SC;
-  const pedX = bbX, pedY = bbY + crank_px;
-
-  // Rider body proportions from measurements
-  const femur_px = r.inseamMm * 0.53 * SC;
-  const shin_px  = r.inseamMm * 0.54 * SC;
-
-  // Hip at saddle
-  const hipX = sadelX, hipY = sadelY + 12;
-
-  // Knee between hip and pedal
-  const hpDX = pedX - hipX, hpDY = pedY - hipY;
-  const t = femur_px / (femur_px + shin_px);
-  const kneeX = hipX + hpDX * t;
-  const kneeY = hipY + hpDY * t;
-
-  // Torso
-  const torsoPx = (r.heightMm - r.inseamMm) * 0.62 * SC;
-  const backAng = [32, 44, 57, 72][position] * Math.PI / 180;
-  const shoulderX = hipX - torsoPx * Math.cos(backAng);
-  const shoulderY = hipY - torsoPx * Math.sin(backAng);
-
-  // Arms
-  const upperArmPx = (r.heightMm - r.inseamMm) * 0.29 * SC;
-  const foreArmPx  = (r.heightMm - r.inseamMm) * 0.27 * SC;
-  const aDX = barX - shoulderX, aDY = barY - shoulderY;
-  const ta = upperArmPx / (upperArmPx + foreArmPx);
-  const elbowX = shoulderX + aDX * ta;
-  const elbowY = shoulderY + aDY * ta;
-
-  // Head
-  const headR = r.heightMm * 0.038 * SC;
-  const headX = shoulderX - headR * 0.4;
-  const headY = shoulderY - headR * 2.2;
-
-  // Colors
-  const bike = '#1a1a2e';
-  const rider = '#1565C0';
-  const mRed = '#C62828';
-  const mOrange = '#E65100';
-
-  // Bar markup based on type
-  const conf = bikeConf[bikeType];
-  let barSvg = '';
-  if (conf.barType === 'drop') {
-    barSvg = `<path d="M${barX-22},${barY} Q${barX-22},${barY+28} ${barX-4},${barY+28} L${barX+4},${barY+28} Q${barX+22},${barY+28} ${barX+22},${barY}" fill="none" stroke="${bike}" stroke-width="5" stroke-linecap="round"/>
-              <line x1="${barX-22}" y1="${barY}" x2="${barX+22}" y2="${barY}" stroke="${bike}" stroke-width="5" stroke-linecap="round"/>`;
-  } else if (conf.barType === 'aero') {
-    barSvg = `<line x1="${barX-10}" y1="${barY}" x2="${barX+10}" y2="${barY}" stroke="${bike}" stroke-width="5" stroke-linecap="round"/>
-              <line x1="${barX-28}" y1="${barY+8}" x2="${barX+28}" y2="${barY+8}" stroke="${bike}" stroke-width="4" stroke-linecap="round"/>
-              <line x1="${barX-10}" y1="${barY}" x2="${barX-28}" y2="${barY+8}" stroke="${bike}" stroke-width="4" stroke-linecap="round"/>
-              <line x1="${barX+10}" y1="${barY}" x2="${barX+28}" y2="${barY+8}" stroke="${bike}" stroke-width="4" stroke-linecap="round"/>`;
-  } else {
-    barSvg = `<line x1="${barX-32}" y1="${barY}" x2="${barX+32}" y2="${barY}" stroke="${bike}" stroke-width="5" stroke-linecap="round"/>
-              <line x1="${barX}" y1="${barY}" x2="${barX}" y2="${barY+26}" stroke="${bike}" stroke-width="4" stroke-linecap="round"/>`;
-  }
-
-  // Spokes helper
-  function spokes(cx, cy, r) {
-    return [0,40,80,120,160].map(a => {
-      const rad = a * Math.PI / 180;
-      return `<line x1="${cx+10*Math.cos(rad)}" y1="${cy+10*Math.sin(rad)}" x2="${cx+r*Math.cos(rad)}" y2="${cy+r*Math.sin(rad)}" stroke="${bike}" stroke-width="1" opacity="0.35"/>
-              <line x1="${cx+10*Math.cos(rad+Math.PI)}" y1="${cy+10*Math.sin(rad+Math.PI)}" x2="${cx+r*Math.cos(rad+Math.PI)}" y2="${cy+r*Math.sin(rad+Math.PI)}" stroke="${bike}" stroke-width="1" opacity="0.35"/>`;
-    }).join('');
-  }
-
-  // Measurement annotations
-  // 1. Saddle height: left of BB, vertical
-  const mX1 = bbX - 52;
-  const midSaddle = (bbY + sadelY) / 2;
-  // 2. Stack: right side vertical
-  const mX2 = barX + 38;
-  const midStack = (bbY + barY) / 2;
-  // 3. Reach: horizontal above bars
-  const mY3 = Math.min(barY, sadelY) - 30;
-
-  svg.innerHTML = `
-    <defs>
-      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#e3edf7"/>
-        <stop offset="100%" stop-color="#f0f4f8"/>
-      </linearGradient>
-      <marker id="arr1" markerWidth="7" markerHeight="7" refX="3" refY="3.5" orient="auto">
-        <path d="M0,0 L7,3.5 L0,7 Z" fill="${mRed}"/>
-      </marker>
-      <marker id="arr1r" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto-start-reverse">
-        <path d="M0,0 L7,3.5 L0,7 Z" fill="${mRed}"/>
-      </marker>
-      <marker id="arr2" markerWidth="7" markerHeight="7" refX="3" refY="3.5" orient="auto">
-        <path d="M0,0 L7,3.5 L0,7 Z" fill="${mOrange}"/>
-      </marker>
-      <marker id="arr2r" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto-start-reverse">
-        <path d="M0,0 L7,3.5 L0,7 Z" fill="${mOrange}"/>
-      </marker>
-    </defs>
-
-    <rect width="760" height="490" fill="url(#bg)"/>
-    <line x1="20" y1="${ground}" x2="740" y2="${ground}" stroke="#b0bec5" stroke-width="2"/>
-
-    <!-- Wheels -->
-    <circle cx="${rearX}" cy="${rearY}" r="${WR}" fill="none" stroke="${bike}" stroke-width="4.5"/>
-    <circle cx="${rearX}" cy="${rearY}" r="11" fill="${bike}"/>
-    ${spokes(rearX, rearY, WR)}
-    <circle cx="${frontX}" cy="${frontY}" r="${WR}" fill="none" stroke="${bike}" stroke-width="4.5"/>
-    <circle cx="${frontX}" cy="${frontY}" r="11" fill="${bike}"/>
-    ${spokes(frontX, frontY, WR)}
-
-    <!-- Frame -->
-    <!-- Chain stay -->
-    <line x1="${rearX}" y1="${rearY}" x2="${bbX}" y2="${bbY}" stroke="${bike}" stroke-width="5" stroke-linecap="round"/>
-    <!-- Seat stay -->
-    <line x1="${rearX}" y1="${rearY}" x2="${sadelX+10}" y2="${sadelY+32}" stroke="${bike}" stroke-width="3.5" stroke-linecap="round"/>
-    <!-- Seat tube -->
-    <line x1="${bbX}" y1="${bbY}" x2="${sadelX+10}" y2="${sadelY+32}" stroke="${bike}" stroke-width="5.5" stroke-linecap="round"/>
-    <!-- Down tube -->
-    <line x1="${bbX}" y1="${bbY}" x2="${barX-10}" y2="${barY+26}" stroke="${bike}" stroke-width="5.5" stroke-linecap="round"/>
-    <!-- Top tube -->
-    <line x1="${sadelX+10}" y1="${sadelY+32}" x2="${barX-10}" y2="${barY+26}" stroke="${bike}" stroke-width="5" stroke-linecap="round"/>
-    <!-- Fork -->
-    <line x1="${barX-10}" y1="${barY+26}" x2="${frontX}" y2="${frontY}" stroke="${bike}" stroke-width="5" stroke-linecap="round"/>
-
-    <!-- BB circle -->
-    <circle cx="${bbX}" cy="${bbY}" r="9" fill="${bike}"/>
-
-    <!-- Crank + pedal -->
-    <line x1="${bbX}" y1="${bbY}" x2="${pedX}" y2="${pedY}" stroke="${bike}" stroke-width="5.5" stroke-linecap="round"/>
-    <line x1="${pedX-13}" y1="${pedY}" x2="${pedX+13}" y2="${pedY}" stroke="${bike}" stroke-width="4.5" stroke-linecap="round"/>
-
-    <!-- Saddle -->
-    <ellipse cx="${sadelX}" cy="${sadelY}" rx="34" ry="7" fill="${bike}"/>
-    <line x1="${sadelX+6}" y1="${sadelY+2}" x2="${sadelX+10}" y2="${sadelY+32}" stroke="${bike}" stroke-width="4.5"/>
-
-    <!-- Handlebar -->
-    ${barSvg}
-    <!-- Headtube -->
-    <line x1="${barX-10}" y1="${barY+26}" x2="${barX-6}" y2="${barY-8}" stroke="${bike}" stroke-width="9" stroke-linecap="round"/>
-
-    <!-- ===== RIDER ===== -->
-    <!-- Shin -->
-    <line x1="${kneeX}" y1="${kneeY}" x2="${pedX}" y2="${pedY}" stroke="${rider}" stroke-width="6" stroke-linecap="round"/>
-    <!-- Femur -->
-    <line x1="${hipX}" y1="${hipY}" x2="${kneeX}" y2="${kneeY}" stroke="${rider}" stroke-width="7" stroke-linecap="round"/>
-    <!-- Torso -->
-    <line x1="${hipX}" y1="${hipY}" x2="${shoulderX}" y2="${shoulderY}" stroke="${rider}" stroke-width="9" stroke-linecap="round"/>
-    <!-- Upper arm -->
-    <line x1="${shoulderX}" y1="${shoulderY}" x2="${elbowX}" y2="${elbowY}" stroke="${rider}" stroke-width="6" stroke-linecap="round"/>
-    <!-- Forearm -->
-    <line x1="${elbowX}" y1="${elbowY}" x2="${barX}" y2="${barY}" stroke="${rider}" stroke-width="5" stroke-linecap="round"/>
-    <!-- Neck -->
-    <line x1="${shoulderX}" y1="${shoulderY}" x2="${headX}" y2="${headY+headR}" stroke="${rider}" stroke-width="5" stroke-linecap="round"/>
-
-    <!-- Joint dots -->
-    <circle cx="${kneeX}" cy="${kneeY}" r="7" fill="${rider}" stroke="white" stroke-width="2"/>
-    <circle cx="${hipX}" cy="${hipY}" r="9" fill="${rider}" stroke="white" stroke-width="2"/>
-    <circle cx="${shoulderX}" cy="${shoulderY}" r="9" fill="${rider}" stroke="white" stroke-width="2"/>
-    <circle cx="${elbowX}" cy="${elbowY}" r="6" fill="${rider}" stroke="white" stroke-width="2"/>
-    <circle cx="${barX}" cy="${barY}" r="5" fill="${rider}" stroke="white" stroke-width="2"/>
-    <circle cx="${pedX}" cy="${pedY}" r="5" fill="${rider}" stroke="white" stroke-width="2"/>
-    <!-- Head -->
-    <circle cx="${headX}" cy="${headY}" r="${headR}" fill="${rider}"/>
-    <!-- Helmet -->
-    <path d="M${headX-headR*0.9},${headY-headR*0.2} Q${headX},${headY-headR*1.6} ${headX+headR*0.9},${headY-headR*0.2}" fill="${rider}" opacity="0.6"/>
-
-    <!-- ===== MEASUREMENTS ===== -->
-
-    <!-- Saddle height: vertical double-arrow left of BB/seat tube -->
-    <line x1="${mX1}" y1="${bbY}" x2="${mX1}" y2="${sadelY}"
-          stroke="${mRed}" stroke-width="2" stroke-dasharray="5,3"
-          marker-start="url(#arr1r)" marker-end="url(#arr1)"/>
-    <line x1="${mX1-6}" y1="${bbY}" x2="${mX1+6}" y2="${bbY}" stroke="${mRed}" stroke-width="2"/>
-    <line x1="${mX1-6}" y1="${sadelY}" x2="${mX1+6}" y2="${sadelY}" stroke="${mRed}" stroke-width="2"/>
-    <text transform="rotate(-90,${mX1-14},${midSaddle})" x="${mX1-14}" y="${midSaddle+4}"
-          fill="${mRed}" font-size="11" font-weight="bold" text-anchor="middle">Sadelhøyde ${r.saddleH}mm</text>
-
-    <!-- Stack: vertical right of bars -->
-    <line x1="${mX2}" y1="${bbY}" x2="${mX2}" y2="${barY}"
-          stroke="${mOrange}" stroke-width="2" stroke-dasharray="5,3"
-          marker-start="url(#arr2r)" marker-end="url(#arr2)"/>
-    <line x1="${mX2-6}" y1="${bbY}" x2="${mX2+6}" y2="${bbY}" stroke="${mOrange}" stroke-width="2"/>
-    <line x1="${mX2-6}" y1="${barY}" x2="${mX2+6}" y2="${barY}" stroke="${mOrange}" stroke-width="2"/>
-    <text transform="rotate(-90,${mX2+14},${midStack})" x="${mX2+14}" y="${midStack+4}"
-          fill="${mOrange}" font-size="11" font-weight="bold" text-anchor="middle">Stack ${r.stack}mm</text>
-
-    <!-- Reach: horizontal, above -->
-    <line x1="${bbX}" y1="${mY3}" x2="${barX}" y2="${mY3}"
-          stroke="${mRed}" stroke-width="2" stroke-dasharray="5,3"
-          marker-start="url(#arr1r)" marker-end="url(#arr1)"/>
-    <line x1="${bbX}" y1="${mY3-6}" x2="${bbX}" y2="${mY3+6}" stroke="${mRed}" stroke-width="2"/>
-    <line x1="${barX}" y1="${mY3-6}" x2="${barX}" y2="${mY3+6}" stroke="${mRed}" stroke-width="2"/>
-    <text x="${(bbX+barX)/2}" y="${mY3-8}" fill="${mRed}" font-size="11" font-weight="bold" text-anchor="middle">Reach ${r.reach}mm</text>
-
-    <!-- BB label -->
-    <text x="${bbX+2}" y="${bbY+20}" fill="${bike}" font-size="9" text-anchor="middle" font-weight="bold" opacity="0.7">BB</text>
-
-    <!-- Footer label -->
-    <text x="380" y="480" fill="#90a4ae" font-size="12" text-anchor="middle">
-      ${bikeConf[bikeType].name} — ${posInfo[position].short.replace(/[^\w\s\-]/g, '').trim()}
-    </text>
-  `;
-}
-
-// Init
-updatePosPreview();
-
-// ===== PHOTO / POSE DETECTION =====
-let poseDetector = null;
-let photoMeasurements = null;
-
-// Keypoint name map (MoveNet order)
-const KP_NAMES = [
-  'nose','left_eye','right_eye','left_ear','right_ear',
-  'left_shoulder','right_shoulder','left_elbow','right_elbow',
-  'left_wrist','right_wrist','left_hip','right_hip',
-  'left_knee','right_knee','left_ankle','right_ankle'
-];
-
-// Skeleton connections to draw
-const SKELETON = [
-  ['left_shoulder','right_shoulder'],
-  ['left_shoulder','left_elbow'],['left_elbow','left_wrist'],
-  ['right_shoulder','right_elbow'],['right_elbow','right_wrist'],
-  ['left_shoulder','left_hip'],['right_shoulder','right_hip'],
-  ['left_hip','right_hip'],
-  ['left_hip','left_knee'],['left_knee','left_ankle'],
-  ['right_hip','right_knee'],['right_knee','right_ankle'],
-  ['nose','left_eye'],['nose','right_eye'],
-  ['left_eye','left_ear'],['right_eye','right_ear']
-];
-
-function setPhotoStatus(type, msg) {
-  const el = document.getElementById('photo-status');
-  el.style.display = 'block';
-  el.className = 'photo-status ps-' + type;
-  el.textContent = msg;
-}
-
-async function ensureDetector() {
-  if (poseDetector) return poseDetector;
-  if (typeof poseDetection === 'undefined' || typeof tf === 'undefined') {
-    setPhotoStatus('error', '❌ AI-bibliotek ikke tilgjengelig. Sjekk at du har internettilkobling og last siden på nytt.');
-    throw new Error('TF.js not loaded');
-  }
-  setPhotoStatus('loading', '⏳ Laster inn AI-modell … (første gang: 5–20 sek, laster modellvekter)');
-  try {
-    await tf.ready();
-    poseDetector = await poseDetection.createDetector(
-      poseDetection.SupportedModels.MoveNet,
-      { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
-    );
-    return poseDetector;
-  } catch (e) {
-    setPhotoStatus('error', '❌ Klarte ikke laste modell. Sjekk internettilkobling og prøv igjen. (' + e.message + ')');
-    throw e;
-  }
-}
-
-async function handlePhotoUpload(input) {
-  const file = input.files[0];
-  if (!file) return;
-
-  const heightCm = parseFloat(document.getElementById('photo-height').value);
-  if (!heightCm || heightCm < 140 || heightCm > 220) {
-    alert('Skriv inn din høyde (140–220 cm) over bildeknappen før du laster opp.');
-    input.value = '';
-    return;
-  }
-
-  const ui = document.getElementById('photo-ui');
-  ui.style.display = 'block';
-  document.getElementById('detected-results').style.display = 'none';
-  setPhotoStatus('loading', '📂 Laster bilde …');
-
-  const img = new Image();
-  const url = URL.createObjectURL(file);
-  img.onload = async () => {
-    URL.revokeObjectURL(url);
-    await runAnalysis(img, heightCm);
-  };
-  img.onerror = () => setPhotoStatus('error', '❌ Klarte ikke lese bildefilen.');
-  img.src = url;
-}
-
-async function runAnalysis(img, heightCm) {
-  const canvas = document.getElementById('pose-canvas');
-  const ctx = canvas.getContext('2d');
-
-  // Scale to max 580px wide for display + inference
-  const MAX_W = 580;
-  const scaleRatio = Math.min(1, MAX_W / img.naturalWidth);
-  canvas.width  = Math.round(img.naturalWidth  * scaleRatio);
-  canvas.height = Math.round(img.naturalHeight * scaleRatio);
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-  setPhotoStatus('loading', '🔍 Analyserer kroppspunkter med AI …');
-
-  let detector;
-  try {
-    detector = await ensureDetector();
-  } catch { return; }
-
-  let poses;
-  try {
-    poses = await detector.estimatePoses(canvas);
-  } catch (e) {
-    setPhotoStatus('error', '❌ Feil under analyse: ' + e.message);
-    return;
-  }
-
-  if (!poses || poses.length === 0) {
-    setPhotoStatus('error', '⚠️ Ingen person oppdaget. Prøv et bilde med bedre lys og hele kroppen synlig.');
-    return;
-  }
-
-  // Map keypoints by name
-  const kps = {};
-  poses[0].keypoints.forEach((kp, i) => {
-    kps[KP_NAMES[i]] = { x: kp.x, y: kp.y, score: kp.score || 0 };
-  });
-
-  // Check critical keypoints
-  const critical = ['left_shoulder','right_shoulder','left_hip','right_hip','left_ankle','right_ankle'];
-  const lowConf = critical.filter(k => !kps[k] || kps[k].score < 0.20);
-  if (lowConf.length >= 3) {
-    setPhotoStatus('warning', `⚠️ Lav sikkerhet på: ${lowConf.join(', ')}. Prøv et tydeligere bilde med hele kroppen.`);
-  }
-
-  // Draw skeleton + measurements on canvas
-  drawSkeletonOverlay(ctx, kps, canvas.width, canvas.height);
-
-  // Compute measurements
-  const m = computeBodyMeasurements(kps, canvas.height, heightCm);
-  if (!m) {
-    setPhotoStatus('error', '⚠️ Klarte ikke beregne mål. For få kroppspunkter oppdaget.');
-    return;
-  }
-  photoMeasurements = m;
-
-  // Draw measurement lines on top
-  drawMeasurementLines(ctx, kps, m, canvas.width, canvas.height);
-
-  // Show results
-  renderDetectedMeasurements(m);
-  setPhotoStatus('done', '✅ Analyse fullført! Kontroller målene under, juster om nødvendig, og trykk "Bruk disse målene".');
-  document.getElementById('detected-results').style.display = 'block';
-}
-
-// ---- Helpers ----
-function kp(kps, name, minScore = 0.18) {
-  const p = kps[name];
-  return (p && p.score >= minScore) ? p : null;
-}
-function midpoint(a, b) {
-  if (a && b) return { x: (a.x+b.x)/2, y: (a.y+b.y)/2 };
-  return a || b;
-}
-function dist2(a, b) {
-  return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
-}
-
-// ---- Measurement computation ----
-function computeBodyMeasurements(kps, canvasH, heightCm) {
-  const heightMm = heightCm * 10;
-
-  const nose      = kp(kps,'nose');
-  const lEye      = kp(kps,'left_eye');
-  const rEye      = kp(kps,'right_eye');
-  const lShoulder = kp(kps,'left_shoulder');
-  const rShoulder = kp(kps,'right_shoulder');
-  const lElbow    = kp(kps,'left_elbow');
-  const rElbow    = kp(kps,'right_elbow');
-  const lWrist    = kp(kps,'left_wrist');
-  const rWrist    = kp(kps,'right_wrist');
-  const lHip      = kp(kps,'left_hip');
-  const rHip      = kp(kps,'right_hip');
-  const lKnee     = kp(kps,'left_knee');
-  const rKnee     = kp(kps,'right_knee');
-  const lAnkle    = kp(kps,'left_ankle');
-  const rAnkle    = kp(kps,'right_ankle');
-
-  // ---- Scale factor: pixel → mm ----
-  // Estimate top of head from nose + eye offset
-  let headTopY = null;
-  if (nose && lEye && rEye) {
-    const eyeAvgY = (lEye.y + rEye.y) / 2;
-    const eyeNoseDiff = nose.y - eyeAvgY;
-    headTopY = eyeAvgY - eyeNoseDiff * 1.9; // rough crown estimate
-  } else if (nose) {
-    headTopY = nose.y - canvasH * 0.06;
-  }
-
-  const anklesMid = midpoint(lAnkle, rAnkle);
-  const ankleY = anklesMid ? anklesMid.y : canvasH * 0.95;
-
-  const bodyPx = headTopY !== null
-    ? Math.max(ankleY - headTopY, canvasH * 0.5)
-    : canvasH * 0.88;
-
-  const scale = heightMm / bodyPx; // mm per pixel
-
-  const m = { scale, heightCm };
-
-  // ---- Inseam (hip midpoint → ankle midpoint) ----
-  const hipMid = midpoint(lHip, rHip);
-  if (hipMid && anklesMid) {
-    m.inseam = Math.round((anklesMid.y - hipMid.y) * scale);
-    m.inseamConf = ((lHip?.score||0) + (rHip?.score||0) + (lAnkle?.score||0) + (rAnkle?.score||0)) / 4;
-  }
-
-  // ---- Torso (shoulder mid → hip mid) ----
-  const shoulderMid = midpoint(lShoulder, rShoulder);
-  if (shoulderMid && hipMid) {
-    m.torso = Math.round((hipMid.y - shoulderMid.y) * scale);
-    m.torsoConf = ((lShoulder?.score||0) + (rShoulder?.score||0) + (lHip?.score||0) + (rHip?.score||0)) / 4;
-  }
-
-  // ---- Shoulder width ----
-  if (lShoulder && rShoulder) {
-    m.shoulderWidth = Math.round(Math.abs(rShoulder.x - lShoulder.x) * scale);
-    m.shoulderConf = (lShoulder.score + rShoulder.score) / 2;
-  }
-
-  // ---- Arm length (shoulder → elbow → wrist), best side ----
-  let leftArm = null, rightArm = null;
-  if (lShoulder && lElbow && lWrist) {
-    leftArm = (dist2(lShoulder, lElbow) + dist2(lElbow, lWrist)) * scale;
-  }
-  if (rShoulder && rElbow && rWrist) {
-    rightArm = (dist2(rShoulder, rElbow) + dist2(rElbow, rWrist)) * scale;
-  }
-  if (leftArm || rightArm) {
-    m.armLength = Math.round(leftArm && rightArm ? (leftArm + rightArm) / 2 : (leftArm || rightArm));
-    const scores = [lShoulder, lElbow, lWrist, rShoulder, rElbow, rWrist].filter(Boolean).map(p => p.score);
-    m.armConf = scores.reduce((a,b)=>a+b,0) / scores.length;
-  }
-
-  // ---- Armspan = 2 × arm + shoulder width ----
-  if (m.armLength && m.shoulderWidth) {
-    m.armspan = Math.round(m.armLength * 2 + m.shoulderWidth);
-  }
-
-  // Sanity range checks (adult human proportions)
-  if (m.inseam   && (m.inseam   < 600 || m.inseam   > 1100)) m.inseamWarn = true;
-  if (m.torso    && (m.torso    < 350 || m.torso    > 750))  m.torsoWarn = true;
-  if (m.armLength&& (m.armLength< 400 || m.armLength> 900))  m.armWarn = true;
-
-  return (m.inseam || m.torso) ? m : null;
-}
-
-// ---- Canvas drawing ----
-function drawSkeletonOverlay(ctx, kps, w, h) {
-  // Skeleton lines
-  ctx.lineWidth = 3;
-  SKELETON.forEach(([a, b]) => {
-    const p1 = kp(kps, a, 0.15), p2 = kp(kps, b, 0.15);
-    if (!p1 || !p2) return;
-    ctx.strokeStyle = 'rgba(0, 229, 255, 0.80)';
-    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-  });
-  // Joint dots
-  Object.entries(kps).forEach(([, p]) => {
-    if (!p || p.score < 0.15) return;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-    ctx.fillStyle = p.score > 0.5 ? '#00e5ff' : '#ff9800';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  });
-}
-
-function drawMeasurementLines(ctx, kps, m, canvasW, canvasH) {
-  const lShoulder = kp(kps,'left_shoulder',0.15);
-  const rShoulder = kp(kps,'right_shoulder',0.15);
-  const lHip      = kp(kps,'left_hip',0.15);
-  const rHip      = kp(kps,'right_hip',0.15);
-  const lAnkle    = kp(kps,'left_ankle',0.15);
-  const rAnkle    = kp(kps,'right_ankle',0.15);
-  const rElbow    = kp(kps,'right_elbow',0.15);
-  const rWrist    = kp(kps,'right_wrist',0.15);
-
-  const hipMid    = midpoint(lHip, rHip);
-  const ankleMid  = midpoint(lAnkle, rAnkle);
-  const shldrMid  = midpoint(lShoulder, rShoulder);
-
-  // Inseam — left side of body (purple)
-  if (hipMid && ankleMid && m.inseam) {
-    const x = (lHip ? lHip.x : hipMid.x) - 28;
-    drawVMeasure(ctx, x, hipMid.y, ankleMid.y, '#ce93d8', `${Math.round(m.inseam/10)}cm`);
-  }
-  // Torso — left of body (orange)
-  if (shldrMid && hipMid && m.torso) {
-    const x = (lShoulder ? lShoulder.x : shldrMid.x) - 52;
-    drawVMeasure(ctx, x, shldrMid.y, hipMid.y, '#ffb74d', `${Math.round(m.torso/10)}cm`);
-  }
-  // Shoulder width — above (blue)
-  if (lShoulder && rShoulder && m.shoulderWidth) {
-    const y = Math.min(lShoulder.y, rShoulder.y) - 22;
-    drawHMeasure(ctx, lShoulder.x, rShoulder.x, y, '#64b5f6', `${Math.round(m.shoulderWidth/10)}cm`);
-  }
-  // Arm — right side (green)
-  if (rShoulder && rWrist && m.armLength) {
-    const x = Math.max(rShoulder.x, rWrist.x) + 22;
-    drawVMeasure(ctx, x, rShoulder.y, rWrist.y, '#81c784', `${Math.round(m.armLength/10)}cm`);
-  }
-}
-
-function drawVMeasure(ctx, x, y1, y2, color, label) {
-  ctx.save();
-  ctx.strokeStyle = color; ctx.fillStyle = color;
-  ctx.lineWidth = 2.5; ctx.setLineDash([5, 3]);
-  ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke();
-  ctx.setLineDash([]);
-  // End ticks
-  [[x-6, x+6, y1],[x-6, x+6, y2]].forEach(([x1,x2,y]) => {
-    ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
-  });
-  // Label (rotated)
-  ctx.save();
-  ctx.translate(x - 14, (y1 + y2) / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.font = 'bold 12px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 4;
-  ctx.fillText(label, 0, 0);
-  ctx.restore();
-  ctx.restore();
-}
-
-function drawHMeasure(ctx, x1, x2, y, color, label) {
-  ctx.save();
-  ctx.strokeStyle = color; ctx.fillStyle = color;
-  ctx.lineWidth = 2.5; ctx.setLineDash([5, 3]);
-  ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
-  ctx.setLineDash([]);
-  [[x1, y-6, x1, y+6],[x2, y-6, x2, y+6]].forEach(([ax,ay,bx,by]) => {
-    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
-  });
-  ctx.font = 'bold 12px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 4;
-  ctx.fillText(label, (x1 + x2) / 2, y - 8);
-  ctx.restore();
-}
-
-// ---- Display detected measurements ----
-function confLabel(score) {
-  if (!score) return '';
-  if (score > 0.7) return '🟢 Høy sikkerhet';
-  if (score > 0.4) return '🟡 Middels sikkerhet';
-  return '🔴 Lav sikkerhet';
-}
-
-function renderDetectedMeasurements(m) {
-  const items = [
-    { key: 'inseam',       label: 'Skritthøyde', conf: m.inseamConf,    warn: m.inseamWarn },
-    { key: 'torso',        label: 'Overkropp',   conf: m.torsoConf,     warn: m.torsoWarn  },
-    { key: 'shoulderWidth',label: 'Skulderbredde',conf: m.shoulderConf, warn: false        },
-    { key: 'armLength',    label: 'Armlengde',   conf: m.armConf,       warn: m.armWarn    },
-    { key: 'armspan',      label: 'Armspenn',    conf: m.armConf,       warn: false        },
-  ];
-
-  document.getElementById('detected-grid').innerHTML = items
-    .filter(i => m[i.key])
-    .map(i => {
-      const val = m[i.key];
-      const cm = (val / 10).toFixed(1);
-      return `<div class="det-item${i.warn ? '" style="border-color:#ef9a9a;background:#fce4ec' : ''}">
-        <div class="det-val">${cm}<span class="det-unit"> cm</span></div>
-        <div class="det-lbl">${i.label}</div>
-        <div class="det-conf">${confLabel(i.conf)}</div>
-      </div>`;
-    }).join('');
-}
-
-// ---- Apply measurements to form ----
-function applyPhotoMeasurements() {
-  if (!photoMeasurements) return;
-  const m = photoMeasurements;
-
-  // Switch to advanced mode
-  setMode('advanced');
-
-  // Set height
-  const hInput = document.getElementById('h2');
-  if (hInput && m.heightCm) hInput.value = m.heightCm;
-
-  // Fill measurements (mm → cm, 1 decimal)
-  const fields = {
-    'inseam':   m.inseam,
-    'armspan':  m.armspan,
-    'torso':    m.torso,
-    'armlen':   m.armLength,
-    'shoulder': m.shoulderWidth,
-  };
-  Object.entries(fields).forEach(([id, valMm]) => {
-    if (!valMm) return;
-    const el = document.getElementById(id);
-    if (el) el.value = (valMm / 10).toFixed(1);
-  });
-
-  // Scroll to measurements form
-  document.getElementById('inputs-advanced').scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  // Flash success
-  setPhotoStatus('done', '✅ Mål overført til skjema! Kontroller verdiene og trykk "Beregn min sykkelfit".');
-}
-</script>
 </body>
 </html>
