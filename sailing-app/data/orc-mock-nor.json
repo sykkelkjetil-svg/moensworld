@@ -1,0 +1,164 @@
+{
+  "rms": [
+    {
+      "RefNo": "NOR-001", "CertNo": "NOR-2024-001", "SailNo": "NOR 7100",
+      "YachtName": "Njord", "Class": "Dehler 34", "Builder": "Dehler", "Designer": "Judel/Vrolijk",
+      "Age_Year": 2005, "LOA": 10.22, "MB": 3.45, "Draft": 1.82,
+      "Dspl_Sailing": 4800, "GPH": 540.3, "OSN": 1.034,
+      "TMF_Inshore": 1.021, "TMF_Offshore": 1.028,
+      "Area_Main": 30.5, "Area_Jib": 18.2, "Area_Asym": 52.0, "CDL": 9.1
+    },
+    {
+      "RefNo": "NOR-002", "CertNo": "NOR-2024-002", "SailNo": "NOR 4412",
+      "YachtName": "Vindløs", "Class": "Farr 30", "Builder": "Farr", "Designer": "Farr Yacht Design",
+      "Age_Year": 2002, "LOA": 9.14, "MB": 2.97, "Draft": 1.98,
+      "Dspl_Sailing": 2950, "GPH": 498.2, "OSN": 1.078,
+      "TMF_Inshore": 1.062, "TMF_Offshore": 1.069,
+      "Area_Main": 28.0, "Area_Jib": 14.5, "Area_Asym": 46.0, "CDL": 8.5
+    },
+    {
+      "RefNo": "NOR-003", "CertNo": "NOR-2024-003", "SailNo": "NOR 1234",
+      "YachtName": "Bris", "Class": "J/24", "Builder": "J/Boats", "Designer": "Rod Johnstone",
+      "Age_Year": 1998, "LOA": 7.32, "MB": 2.74, "Draft": 1.22,
+      "Dspl_Sailing": 1430, "GPH": 586.4, "OSN": 0.981,
+      "TMF_Inshore": 0.967, "TMF_Offshore": 0.972,
+      "Area_Main": 18.6, "Area_Jib": 9.3, "Area_Asym": 30.0, "CDL": 7.0
+    },
+    {
+      "RefNo": "NOR-004", "CertNo": "NOR-2024-004", "SailNo": "NOR 8888",
+      "YachtName": "Havørn", "Class": "Swan 45", "Builder": "Nautor", "Designer": "Ron Holland",
+      "Age_Year": 1994, "LOA": 13.72, "MB": 4.17, "Draft": 2.20,
+      "Dspl_Sailing": 9800, "GPH": 522.1, "OSN": 1.062,
+      "TMF_Inshore": 1.049, "TMF_Offshore": 1.055,
+      "Area_Main": 55.0, "Area_Jib": 32.0, "Area_Asym": 95.0, "CDL": 12.1
+    },
+    {
+      "RefNo": "NOR-005", "CertNo": "NOR-2024-005", "SailNo": "NOR 5555",
+      "YachtName": "Storm", "Class": "First 40", "Builder": "Beneteau", "Designer": "Farr Yacht Design",
+      "Age_Year": 2008, "LOA": 12.19, "MB": 3.99, "Draft": 2.10,
+      "Dspl_Sailing": 7900, "GPH": 509.8, "OSN": 1.047,
+      "TMF_Inshore": 1.035, "TMF_Offshore": 1.041,
+      "Area_Main": 48.5, "Area_Jib": 28.0, "Area_Asym": 82.0, "CDL": 11.2
+    },
+    {
+      "RefNo": "NOR-006", "CertNo": "NOR-2024-006", "SailNo": "NOR 3210",
+      "YachtName": "Frisbeier", "Class": "Dufour 36", "Builder": "Dufour", "Designer": "Michel Joubert",
+      "Age_Year": 2010, "LOA": 11.05, "MB": 3.79, "Draft": 1.90,
+      "Dspl_Sailing": 6200, "GPH": 558.7, "OSN": 1.018,
+      "TMF_Inshore": 1.004, "TMF_Offshore": 1.011,
+      "Area_Main": 38.0, "Area_Jib": 22.5, "Area_Asym": 66.0, "CDL": 10.0
+    },
+    {
+      "RefNo": "NOR-007", "CertNo": "NOR-2024-007", "SailNo": "NOR 6601",
+      "YachtName": "Vestfjord", "Class": "X-332", "Builder": "X-Yachts", "Designer": "Niels Jeppesen",
+      "Age_Year": 2003, "LOA": 10.10, "MB": 3.40, "Draft": 1.78,
+      "Dspl_Sailing": 5100, "GPH": 533.5, "OSN": 1.041,
+      "TMF_Inshore": 1.028, "TMF_Offshore": 1.034,
+      "Area_Main": 32.0, "Area_Jib": 19.0, "Area_Asym": 56.0, "CDL": 9.3
+    },
+    {
+      "RefNo": "NOR-008", "CertNo": "NOR-2024-008", "SailNo": "NOR 9922",
+      "YachtName": "Albatross", "Class": "Hanse 400", "Builder": "Hanse", "Designer": "Judel/Vrolijk",
+      "Age_Year": 2012, "LOA": 11.99, "MB": 4.00, "Draft": 1.95,
+      "Dspl_Sailing": 7400, "GPH": 547.2, "OSN": 1.026,
+      "TMF_Inshore": 1.013, "TMF_Offshore": 1.019,
+      "Area_Main": 43.0, "Area_Jib": 26.0, "Area_Asym": 74.0, "CDL": 10.8
+    },
+    {
+      "RefNo": "NOR-009", "CertNo": "NOR-2024-009", "SailNo": "NOR 1100",
+      "YachtName": "Kniven", "Class": "Quarter Tonner", "Builder": "Norlin", "Designer": "Peter Norlin",
+      "Age_Year": 1978, "LOA": 7.60, "MB": 2.50, "Draft": 1.45,
+      "Dspl_Sailing": 1600, "GPH": 612.0, "OSN": 0.955,
+      "TMF_Inshore": 0.942, "TMF_Offshore": 0.948,
+      "Area_Main": 20.0, "Area_Jib": 10.5, "Area_Asym": 32.0, "CDL": 7.2
+    },
+    {
+      "RefNo": "NOR-010", "CertNo": "NOR-2024-010", "SailNo": "NOR 2020",
+      "YachtName": "Polarstjerne", "Class": "Hallberg-Rassy 40", "Builder": "Hallberg-Rassy", "Designer": "Germán Frers",
+      "Age_Year": 2015, "LOA": 12.35, "MB": 4.10, "Draft": 1.80,
+      "Dspl_Sailing": 11500, "GPH": 592.0, "OSN": 0.978,
+      "TMF_Inshore": 0.964, "TMF_Offshore": 0.971,
+      "Area_Main": 46.0, "Area_Jib": 27.5, "Area_Asym": 78.0, "CDL": 11.4
+    },
+    {
+      "RefNo": "NOR-011", "CertNo": "NOR-2024-011", "SailNo": "NOR 4444",
+      "YachtName": "Sjøsprøyt", "Class": "Jeanneau Sun Fast 3300", "Builder": "Jeanneau", "Designer": "Marc Lombard",
+      "Age_Year": 2020, "LOA": 9.99, "MB": 3.30, "Draft": 2.00,
+      "Dspl_Sailing": 3900, "GPH": 493.1, "OSN": 1.082,
+      "TMF_Inshore": 1.067, "TMF_Offshore": 1.074,
+      "Area_Main": 34.5, "Area_Jib": 16.0, "Area_Asym": 58.0, "CDL": 9.0
+    },
+    {
+      "RefNo": "NOR-012", "CertNo": "NOR-2024-012", "SailNo": "NOR 7777",
+      "YachtName": "Trollfjord", "Class": "Bavaria 42", "Builder": "Bavaria", "Designer": "Bavaria Design Team",
+      "Age_Year": 2007, "LOA": 12.75, "MB": 4.05, "Draft": 2.00,
+      "Dspl_Sailing": 8800, "GPH": 561.4, "OSN": 1.011,
+      "TMF_Inshore": 0.997, "TMF_Offshore": 1.004,
+      "Area_Main": 45.0, "Area_Jib": 27.0, "Area_Asym": 76.0, "CDL": 11.0
+    },
+    {
+      "RefNo": "NOR-013", "CertNo": "NOR-2024-013", "SailNo": "NOR 5151",
+      "YachtName": "Skjærgård", "Class": "J/109", "Builder": "J/Boats", "Designer": "Bob Johnstone",
+      "Age_Year": 2004, "LOA": 10.97, "MB": 3.50, "Draft": 1.95,
+      "Dspl_Sailing": 5200, "GPH": 506.8, "OSN": 1.051,
+      "TMF_Inshore": 1.038, "TMF_Offshore": 1.044,
+      "Area_Main": 37.5, "Area_Jib": 20.0, "Area_Asym": 64.0, "CDL": 10.1
+    },
+    {
+      "RefNo": "NOR-014", "CertNo": "NOR-2024-014", "SailNo": "NOR 8001",
+      "YachtName": "Gale Force", "Class": "Ker 40+", "Builder": "Custom", "Designer": "Mark Ker",
+      "Age_Year": 2018, "LOA": 12.00, "MB": 3.80, "Draft": 2.35,
+      "Dspl_Sailing": 5500, "GPH": 462.0, "OSN": 1.124,
+      "TMF_Inshore": 1.109, "TMF_Offshore": 1.116,
+      "Area_Main": 52.0, "Area_Jib": 22.0, "Area_Asym": 88.0, "CDL": 11.1
+    },
+    {
+      "RefNo": "NOR-015", "CertNo": "NOR-2024-015", "SailNo": "NOR 3030",
+      "YachtName": "Kystridder", "Class": "Elan 340", "Builder": "Elan", "Designer": "Rob Humphreys",
+      "Age_Year": 2009, "LOA": 10.30, "MB": 3.45, "Draft": 1.80,
+      "Dspl_Sailing": 5300, "GPH": 554.9, "OSN": 1.021,
+      "TMF_Inshore": 1.008, "TMF_Offshore": 1.014,
+      "Area_Main": 33.0, "Area_Jib": 19.5, "Area_Asym": 58.0, "CDL": 9.5
+    },
+    {
+      "RefNo": "NOR-016", "CertNo": "NOR-2024-016", "SailNo": "NOR 2525",
+      "YachtName": "Nordsjøen", "Class": "Oyster 48", "Builder": "Oyster", "Designer": "Rob Humphreys",
+      "Age_Year": 2014, "LOA": 14.63, "MB": 4.57, "Draft": 2.15,
+      "Dspl_Sailing": 17800, "GPH": 611.5, "OSN": 0.956,
+      "TMF_Inshore": 0.943, "TMF_Offshore": 0.949,
+      "Area_Main": 68.0, "Area_Jib": 40.0, "Area_Asym": 110.0, "CDL": 13.5
+    },
+    {
+      "RefNo": "NOR-017", "CertNo": "NOR-2024-017", "SailNo": "NOR 9090",
+      "YachtName": "Måneskinn", "Class": "C&C 99", "Builder": "C&C", "Designer": "Rob Ball",
+      "Age_Year": 2017, "LOA": 9.75, "MB": 3.15, "Draft": 2.10,
+      "Dspl_Sailing": 3200, "GPH": 487.6, "OSN": 1.092,
+      "TMF_Inshore": 1.077, "TMF_Offshore": 1.084,
+      "Area_Main": 31.0, "Area_Jib": 15.5, "Area_Asym": 54.0, "CDL": 8.8
+    },
+    {
+      "RefNo": "NOR-018", "CertNo": "NOR-2024-018", "SailNo": "NOR 6006",
+      "YachtName": "Saltstraumen", "Class": "X-41", "Builder": "X-Yachts", "Designer": "Niels Jeppesen",
+      "Age_Year": 2006, "LOA": 12.50, "MB": 3.85, "Draft": 2.30,
+      "Dspl_Sailing": 6800, "GPH": 494.7, "OSN": 1.079,
+      "TMF_Inshore": 1.065, "TMF_Offshore": 1.071,
+      "Area_Main": 50.0, "Area_Jib": 25.0, "Area_Asym": 85.0, "CDL": 11.3
+    },
+    {
+      "RefNo": "NOR-019", "CertNo": "NOR-2024-019", "SailNo": "NOR 1919",
+      "YachtName": "Rask", "Class": "Melges 32", "Builder": "Melges", "Designer": "Reichel/Pugh",
+      "Age_Year": 2011, "LOA": 9.75, "MB": 3.00, "Draft": 2.20,
+      "Dspl_Sailing": 2700, "GPH": 473.5, "OSN": 1.109,
+      "TMF_Inshore": 1.094, "TMF_Offshore": 1.101,
+      "Area_Main": 38.0, "Area_Jib": 16.5, "Area_Asym": 65.0, "CDL": 9.1
+    },
+    {
+      "RefNo": "NOR-020", "CertNo": "NOR-2024-020", "SailNo": "NOR 4321",
+      "YachtName": "Lysfjord", "Class": "Arcona 380", "Builder": "Arcona", "Designer": "Peter Norlin",
+      "Age_Year": 2016, "LOA": 11.50, "MB": 3.68, "Draft": 1.88,
+      "Dspl_Sailing": 6000, "GPH": 529.0, "OSN": 1.046,
+      "TMF_Inshore": 1.032, "TMF_Offshore": 1.039,
+      "Area_Main": 40.0, "Area_Jib": 23.0, "Area_Asym": 70.0, "CDL": 10.4
+    }
+  ]
+}

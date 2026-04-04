@@ -15,6 +15,7 @@
       --muted:   rgba(255,255,255,0.38);
       --accent:  #6c63ff;
       --accent2: #00d2ff;
+      --accent3: #00c9a7;
     }
 
     html, body {
@@ -138,6 +139,7 @@
 
     .card-bike::before    { background: radial-gradient(ellipse at top left, rgba(108,99,255,0.14), transparent 65%); }
     .card-weather::before { background: radial-gradient(ellipse at top left, rgba(0,210,255,0.12), transparent 65%); }
+    .card-sailing::before { background: radial-gradient(ellipse at top left, rgba(0,201,167,0.13), transparent 65%); }
 
     .card-arrow {
       position: absolute;
@@ -246,6 +248,20 @@
         <span class="tag">Live data</span>
         <span class="tag">Kart</span>
         <span class="tag">Frost API</span>
+      </div>
+    </a>
+
+    <a href="sailing-app/index.html" class="card card-sailing">
+      <span class="card-arrow">↗</span>
+      <div class="card-icon">⛵</div>
+      <div class="card-title">SeilNorge</div>
+      <div class="card-desc">
+        Norsk seilerportal med instrumenter, båtoppslagsverk og Norrating-data. Sammenlign båter og finn fartspotensiale.
+      </div>
+      <div class="card-tags">
+        <span class="tag">Seiling</span>
+        <span class="tag">Norrating</span>
+        <span class="tag">Båter</span>
       </div>
     </a>
 

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Norsk seilerportal – instrumenter, båtoppslagsverk, Norrating og nyheter" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0a0e14" />
+  <title>SeilNorge – Din seilerportal</title>
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+
+<!-- =====================================================================
+     NAVIGATION
+====================================================================== -->
+<nav id="nav">
+  <div class="nav-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2 L3 20 L12 17 L21 20 Z"/>
+      <path d="M12 2 L12 17"/>
+    </svg>
+    SeilNorge
+  </div>
+
+  <ul class="nav-links">
+    <li><a href="#hero"        data-nav-link>Hjem</a></li>
+    <li><a href="#instruments" data-nav-link>Instrumenter</a></li>
+    <li><a href="#baater"      data-nav-link>Båter</a></li>
+    <li><a href="#nyheter"     data-nav-link>Nyheter</a></li>
+  </ul>
+
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Meny">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="6"  x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+</nav>
+
+<!-- Mobile nav drawer -->
+<div id="nav-drawer">
+  <a href="#hero"        data-nav-link>🏠 Hjem</a>
+  <a href="#instruments" data-nav-link>⛵ Instrumenter</a>
+  <a href="#baater"      data-nav-link>🚢 Båtoppslagsverk</a>
+  <a href="#nyheter"     data-nav-link>📰 Nyheter</a>
+</div>
+
+<main>
+
+<!-- =====================================================================
+     HERO
+====================================================================== -->
+<section id="hero" class="section">
+  <div class="hero-bg-grid"></div>
+  <div class="section-inner">
+    <div class="hero-content">
+      <div class="hero-tag">Norsk seilerportal</div>
+      <h1 class="hero-title">
+        Navigér smartere.<br>
+        Seil <span class="accent">raskere</span>.
+      </h1>
+      <p class="hero-sub">
+        GPS-baserte seilinstrumenter, komplett båtoppslagsverk med Norrating-data,
+        og de siste nyhetene fra norsk og internasjonal seiling.
+      </p>
+      <div class="hero-actions">
+        <a href="#instruments" class="btn-primary" data-nav-link>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          Åpne instrumenter
+        </a>
+        <a href="#baater" class="btn-secondary" data-nav-link>
+          Utforsk båter
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature pills -->
+  <div style="position:absolute;bottom:90px;left:0;right:0;">
+    <div class="section-inner">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:18px">📍</span>
+          GPS · SOG · COG · VMG
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:18px">🗺️</span>
+          Kart med waypoints
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:18px">⚓</span>
+          ORC / Norrating-database
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:18px">⚖️</span>
+          Sammenlign båter
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wave divider -->
+  <svg class="hero-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,50 1440,40 L1440,80 L0,80 Z" fill="#111820"/>
+  </svg>
+</section>
+
+<!-- =====================================================================
+     INSTRUMENTS
+====================================================================== -->
+<section id="instruments" class="section" style="background:var(--surface);padding-bottom:0">
+  <div class="section-inner" style="padding-bottom:0">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">⛵ Seilinstrumenter</h2>
+        <p class="section-subtitle">GPS-baserte instrumenter — fungerer direkte i nettleseren, også på mobil</p>
+      </div>
+      <a href="sailing-app-kopi.html" target="_blank" class="btn-secondary" style="white-space:nowrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Åpne i fullskjerm
+      </a>
+    </div>
+
+    <div class="instrument-frame-wrap">
+      <div class="instrument-loading" id="instrument-loading">
+        <div class="loading-spinner"></div>
+        <span>Laster seilinstrumenter…</span>
+      </div>
+      <!-- src is set lazily in app.js when section enters viewport -->
+      <iframe id="instrument-iframe"
+              title="Seilinstrumenter"
+              allow="geolocation; gyroscope; accelerometer"
+              loading="lazy">
+      </iframe>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     BOATS ENCYCLOPEDIA
+====================================================================== -->
+<section id="baater" class="section">
+  <div class="section-inner">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">🚢 Båtoppslagsverk</h2>
+        <p class="section-subtitle">
+          Søk i ORC-sertifiserte norske seilbåter, legg til egne og sammenlign side-om-side
+        </p>
+      </div>
+      <button class="btn-primary" onclick="openAddBoatModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Legg til båt
+      </button>
+    </div>
+
+    <!-- Search + filter bar -->
+    <div class="boats-controls">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input id="boat-search" type="search" placeholder="Søk på navn, seilnummer, klasse…" autocomplete="off" />
+      </div>
+      <select id="boat-class-filter" class="filter-select">
+        <option value="alle">Alle klasser</option>
+      </select>
+    </div>
+
+    <!-- Data source indicator -->
+    <div class="boats-status">
+      <span class="status-dot mock" id="data-source-dot"></span>
+      <span id="data-source-text">Laster data…</span>
+      &bull;
+      <span id="boat-count">—</span> båter
+    </div>
+
+    <!-- Boat grid -->
+    <div class="boat-grid" id="boat-grid">
+      <!-- Populated by boats.js -->
+      <div class="skeleton-card"><div class="skeleton-line wide"></div><div class="skeleton-line tall"></div></div>
+      <div class="skeleton-card"><div class="skeleton-line wide"></div><div class="skeleton-line tall"></div></div>
+      <div class="skeleton-card"><div class="skeleton-line wide"></div><div class="skeleton-line tall"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     NEWS
+====================================================================== -->
+<section id="nyheter" class="section">
+  <div class="section-inner">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">📰 Seilinyheter</h2>
+        <p class="section-subtitle">Siste fra norsk og internasjonal seiling</p>
+      </div>
+    </div>
+    <div class="news-grid" id="news-grid">
+      <!-- Populated by app.js -->
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- =====================================================================
+     FOOTER
+====================================================================== -->
+<footer>
+  <div class="section-inner">
+    <div class="footer-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2 L3 20 L12 17 L21 20 Z"/><path d="M12 2 L12 17"/>
+      </svg>
+      SeilNorge
+    </div>
+    <div class="footer-links">
+      <a href="https://www.seilforbundet.no" target="_blank" rel="noopener">Norges Seilforbund</a>
+      <a href="https://norrating.org" target="_blank" rel="noopener">NOR-Rating</a>
+      <a href="https://data.orc.org" target="_blank" rel="noopener">ORC Data</a>
+      <a href="https://www.yr.no" target="_blank" rel="noopener">Yr.no</a>
+    </div>
+    <p>
+      Båtdata fra <a href="https://data.orc.org" target="_blank" rel="noopener">ORC Certificate Database</a>.
+      Seilinstrumenter benytter GPS via nettleser-API.
+    </p>
+  </div>
+</footer>
+
+<!-- =====================================================================
+     COMPARE FLOATING BAR
+====================================================================== -->
+<div id="compare-bar">
+  <div>
+    <div class="compare-bar-count">0</div>
+    <div class="compare-bar-label">valgt</div>
+  </div>
+  <div class="compare-bar-boats"></div>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button class="btn-primary" onclick="openCompareOverlay()" style="padding:10px 18px;font-size:13px">
+      Sammenlign
+    </button>
+    <button class="btn-secondary" onclick="clearAllCompare()" style="padding:10px 14px;font-size:13px">
+      Nullstill
+    </button>
+  </div>
+</div>
+
+<!-- =====================================================================
+     COMPARE OVERLAY
+====================================================================== -->
+<div id="compare-overlay" class="hidden">
+  <div class="compare-sheet">
+    <div class="compare-sheet-header">
+      <span class="compare-sheet-title">⚖️ Sammenlign seilbåter</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn-secondary" onclick="clearAllCompare()" style="padding:8px 14px;font-size:13px">
+          Nullstill
+        </button>
+        <button class="btn-icon" onclick="closeCompareOverlay()" title="Lukk">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="compare-sheet-body">
+      <div id="compare-table-container">
+        <!-- Table rendered by compare.js -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     ADD BOAT MODAL
+====================================================================== -->
+<div id="modal-add-boat" class="hidden">
+  <div class="modal-sheet">
+    <div class="modal-title">➕ Legg til båt manuelt</div>
+    <form id="add-boat-form" onsubmit="event.preventDefault(); saveUserBoat()">
+
+      <div class="form-row">
+        <div class="form-field full">
+          <label for="add-boat-name">Båtnavn *</label>
+          <input class="modal-input" id="add-boat-name" type="text" placeholder="f.eks. Vindløs" maxlength="60" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="add-boat-sailno">Seilnummer</label>
+          <input class="modal-input" id="add-boat-sailno" type="text" placeholder="NOR 1234" maxlength="20" />
+        </div>
+        <div class="form-field">
+          <label for="add-boat-class">Klasse</label>
+          <input class="modal-input" id="add-boat-class" type="text" placeholder="f.eks. Dehler 34" maxlength="50" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="add-boat-builder">Bygger</label>
+          <input class="modal-input" id="add-boat-builder" type="text" placeholder="f.eks. Dehler" maxlength="50" />
+        </div>
+        <div class="form-field">
+          <label for="add-boat-year">Årsmodell</label>
+          <input class="modal-input" id="add-boat-year" type="number" placeholder="f.eks. 2005" min="1900" max="2030" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="add-boat-loa">LOA (m)</label>
+          <input class="modal-input" id="add-boat-loa" type="number" step="0.01" placeholder="10.22" min="3" max="50" />
+        </div>
+        <div class="form-field">
+          <label for="add-boat-beam">Bredde (m)</label>
+          <input class="modal-input" id="add-boat-beam" type="number" step="0.01" placeholder="3.45" min="1" max="15" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="add-boat-draft">Dybgang (m)</label>
+          <input class="modal-input" id="add-boat-draft" type="number" step="0.01" placeholder="1.82" min="0.3" max="10" />
+        </div>
+        <div class="form-field">
+          <label for="add-boat-gph">GPH (Norrating)</label>
+          <input class="modal-input" id="add-boat-gph" type="number" step="0.1" placeholder="540.3" min="300" max="900" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field full">
+          <label for="add-boat-notes">Notater</label>
+          <textarea class="modal-textarea" id="add-boat-notes" placeholder="Fri tekst om båten…" maxlength="500"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-buttons">
+        <button type="submit" class="btn-primary" style="flex:1">Lagre båt</button>
+        <button type="button" class="btn-secondary" onclick="closeAddBoatModal()">Avbryt</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- =====================================================================
+     TOAST CONTAINER
+====================================================================== -->
+<div id="toast-container"></div>
+
+<!-- =====================================================================
+     SCRIPTS
+====================================================================== -->
+<script type="module" src="js/app.js"></script>
+
+</body>
+</html>
