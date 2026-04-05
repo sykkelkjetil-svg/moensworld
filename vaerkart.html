@@ -7,235 +7,205 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif; background:#0a0a14; color:#fff; overflow:hidden; }
+    #map { width:100vw; height:100vh; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: #0a0a14;
-      color: #fff;
-      overflow: hidden;
-    }
-
-    #map { width: 100vw; height: 100vh; }
-
-    /* ── Panel ── */
+    /* ── Panel ─────────────────────────────────── */
     #panel {
-      position: absolute;
-      top: 20px; left: 20px;
-      z-index: 1000;
-      background: rgba(8, 8, 20, 0.88);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 18px;
-      padding: 18px 20px;
-      width: 230px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+      position:absolute; top:20px; left:20px; z-index:1000;
+      background:rgba(8,8,20,0.9); backdrop-filter:blur(16px);
+      border:1px solid rgba(255,255,255,0.08); border-radius:18px;
+      padding:18px 20px; width:255px;
+      box-shadow:0 12px 40px rgba(0,0,0,0.6);
+      max-height:calc(100vh - 40px); overflow-y:auto;
     }
+    #panel::-webkit-scrollbar { width:3px; }
+    #panel::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:3px; }
 
-    #panel h1 {
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      color: #fff;
-    }
+    #panel h1 { font-size:15px; font-weight:700; letter-spacing:-0.3px; }
+    .subtitle { font-size:10px; color:rgba(255,255,255,0.35); margin-top:2px; margin-bottom:14px; }
 
-    .subtitle {
-      font-size: 10px;
-      color: rgba(255,255,255,0.35);
-      margin-bottom: 14px;
-      margin-top: 2px;
-    }
-
+    /* Param buttons */
     .param-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 9px;
-      color: rgba(255,255,255,0.5);
-      padding: 8px 11px;
-      cursor: pointer;
-      font-size: 12.5px;
-      text-align: left;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-      margin-bottom: 5px;
+      display:flex; align-items:center; gap:8px; width:100%;
+      background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);
+      border-radius:9px; color:rgba(255,255,255,0.5);
+      padding:8px 11px; cursor:pointer; font-size:12.5px;
+      text-align:left; transition:all 0.15s; margin-bottom:5px;
     }
-    .param-btn:hover { background: rgba(255,255,255,0.09); color: #fff; }
-    .param-btn.active-temp  { background: rgba(239,68,68,0.18);  border-color: rgba(239,68,68,0.4);  color: #fca5a5; }
-    .param-btn.active-wind  { background: rgba(99,179,237,0.18); border-color: rgba(99,179,237,0.4); color: #93c5fd; }
-    .param-btn.active-precip{ background: rgba(96,165,250,0.18); border-color: rgba(96,165,250,0.4); color: #93c5fd; }
-    .param-btn.active-humid { background: rgba(52,211,153,0.18); border-color: rgba(52,211,153,0.4); color: #6ee7b7; }
-    .param-btn.active-lightning { background: rgba(250,204,21,0.18); border-color: rgba(250,204,21,0.4); color: #fde047; }
+    .param-btn:hover { background:rgba(255,255,255,0.09); color:#fff; }
+    .param-btn.active-temp      { background:rgba(239,68,68,0.18);  border-color:rgba(239,68,68,0.4);  color:#fca5a5; }
+    .param-btn.active-wind      { background:rgba(99,179,237,0.18); border-color:rgba(99,179,237,0.4); color:#93c5fd; }
+    .param-btn.active-precip    { background:rgba(96,165,250,0.18); border-color:rgba(96,165,250,0.4); color:#93c5fd; }
+    .param-btn.active-humid     { background:rgba(52,211,153,0.18); border-color:rgba(52,211,153,0.4); color:#6ee7b7; }
+    .param-btn.active-lightning { background:rgba(250,204,21,0.18); border-color:rgba(250,204,21,0.4); color:#fde047; }
 
-    #legend {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-    }
-    #legend-title { font-size: 10px; color: rgba(255,255,255,0.4); margin-bottom: 5px; }
-    #legend-bar   { height: 10px; border-radius: 5px; margin-bottom: 4px; }
-    #legend-labels{ display: flex; justify-content: space-between; font-size: 9px; color: rgba(255,255,255,0.35); }
+    /* ── Divider ── */
+    .panel-sep { border:none; border-top:1px solid rgba(255,255,255,0.06); margin:10px 0; }
 
-    /* Lightning controls */
-    #lightning-controls {
-      display: none;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255,255,255,0.06);
+    /* ── Mode toggle (Live / Animer) ── */
+    #mode-row { display:none; gap:4px; margin-bottom:8px; }
+    #mode-row.visible { display:flex; }
+    .mode-btn {
+      flex:1; padding:5px 0; font-size:11px; font-weight:600;
+      border-radius:7px; border:1px solid rgba(255,255,255,0.08);
+      background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.4);
+      cursor:pointer; transition:all 0.15s;
     }
-    #lightning-controls.visible { display: block; }
+    .mode-btn.active { background:rgba(255,255,255,0.12); color:#fff; border-color:rgba(255,255,255,0.2); }
 
-    #ln-time {
-      font-size: 11px;
-      color: rgba(250,204,21,0.8);
-      text-align: center;
-      margin-bottom: 8px;
-      font-variant-numeric: tabular-nums;
-      min-height: 16px;
-    }
+    /* ── Anim controls (weather) ── */
+    #anim-controls { display:none; }
+    #anim-controls.visible { display:block; }
 
-    #play-btn {
-      width: 100%;
-      background: rgba(250,204,21,0.15);
-      border: 1px solid rgba(250,204,21,0.3);
-      border-radius: 8px;
-      color: #fde047;
-      padding: 7px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      transition: background 0.15s;
-      margin-bottom: 6px;
+    .anim-row { display:flex; gap:4px; margin-bottom:6px; }
+    .anim-opt {
+      flex:1; padding:5px 0; font-size:10.5px; font-weight:600;
+      border-radius:7px; border:1px solid rgba(255,255,255,0.07);
+      background:rgba(255,255,255,0.03); color:rgba(255,255,255,0.4);
+      cursor:pointer; transition:all 0.15s; text-align:center;
     }
-    #play-btn:hover { background: rgba(250,204,21,0.25); }
+    .anim-opt.active { background:rgba(255,255,255,0.1); color:#fff; border-color:rgba(255,255,255,0.18); }
 
-    #speed-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 10px;
-      color: rgba(255,255,255,0.35);
-    }
-    #speed-slider { flex: 1; accent-color: #fde047; }
+    #daily-type-row { display:none; gap:4px; margin-bottom:6px; }
+    #daily-type-row.visible { display:flex; }
 
-    #ln-progress {
-      width: 100%;
-      height: 3px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 2px;
-      margin-top: 8px;
-      overflow: hidden;
+    #hour-row {
+      display:none; align-items:center; gap:6px;
+      font-size:10px; color:rgba(255,255,255,0.4); margin-bottom:8px;
     }
-    #ln-progress-bar {
-      height: 100%;
-      background: #fde047;
-      border-radius: 2px;
-      width: 0%;
-      transition: width 0.1s linear;
+    #hour-row.visible { display:flex; }
+    #hour-input {
+      width:44px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
+      border-radius:5px; color:#fff; padding:3px 5px; font-size:11px; text-align:center;
     }
 
-    #ln-count {
-      font-size: 10px;
-      color: rgba(255,255,255,0.3);
-      text-align: center;
-      margin-top: 6px;
+    .load-play-btn {
+      width:100%; padding:7px; border-radius:8px; font-size:12px; font-weight:600;
+      cursor:pointer; transition:background 0.15s; margin-bottom:6px;
+      background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18); color:#fff;
     }
+    .load-play-btn:hover { background:rgba(255,255,255,0.18); }
+    .load-play-btn.playing { background:rgba(99,179,237,0.2); border-color:rgba(99,179,237,0.4); color:#93c5fd; }
 
-    /* Footer info */
-    #info-row {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      font-size: 10px;
-      color: rgba(255,255,255,0.3);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    #refresh-btn {
-      background: none; border: none;
-      color: rgba(255,255,255,0.3);
-      cursor: pointer; font-size: 13px;
-      transition: color 0.2s;
-    }
-    #refresh-btn:hover { color: rgba(255,255,255,0.7); }
+    #anim-speed-row { display:flex; align-items:center; gap:6px; font-size:10px; color:rgba(255,255,255,0.35); margin-bottom:6px; }
+    #anim-speed-slider { flex:1; accent-color:#93c5fd; }
 
-    /* Status bar */
-    #status {
-      position: absolute;
-      bottom: 24px; left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      background: rgba(8,8,20,0.92);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 20px;
-      padding: 6px 18px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.55);
-      display: none;
-      white-space: nowrap;
-    }
-    #status.visible { display: block; }
+    #anim-progress { width:100%; height:3px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; margin-bottom:4px; }
+    #anim-progress-bar { height:100%; background:#93c5fd; border-radius:2px; width:0%; transition:width 0.2s linear; }
+    #anim-timestamp { font-size:10px; color:rgba(255,255,255,0.45); text-align:center; min-height:14px; font-variant-numeric:tabular-nums; }
 
-    /* Leaflet popup dark theme */
-    .leaflet-popup-content-wrapper {
-      background: rgba(8,8,20,0.96) !important;
-      border: 1px solid rgba(255,255,255,0.12) !important;
-      border-radius: 14px !important;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.7) !important;
-      color: #fff !important;
-      padding: 0 !important;
-    }
-    .leaflet-popup-content { margin: 0 !important; padding: 14px 16px !important; }
-    .leaflet-popup-tip-container { display: none !important; }
-    .leaflet-popup-close-button { color: rgba(255,255,255,0.4) !important; top: 8px !important; right: 10px !important; }
+    /* ── Legend ── */
+    #legend { margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.06); }
+    #legend-title  { font-size:10px; color:rgba(255,255,255,0.4); margin-bottom:5px; }
+    #legend-bar    { height:10px; border-radius:5px; margin-bottom:4px; }
+    #legend-labels { display:flex; justify-content:space-between; font-size:9px; color:rgba(255,255,255,0.35); }
 
-    .popup-name { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
-    .popup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .popup-cell { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 7px 9px; }
-    .popup-label { font-size: 9px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
-    .popup-val   { font-size: 16px; font-weight: 700; margin-top: 1px; }
-    .popup-meta  { font-size: 10px; color: rgba(255,255,255,0.25); margin-top: 10px; }
+    /* ── Lightning controls ── */
+    #lightning-controls { display:none; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.06); }
+    #lightning-controls.visible { display:block; }
+    #ln-time { font-size:11px; color:rgba(250,204,21,0.8); text-align:center; margin-bottom:8px; font-variant-numeric:tabular-nums; min-height:16px; }
+    #play-btn { width:100%; background:rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.3); border-radius:8px; color:#fde047; padding:7px; cursor:pointer; font-size:12px; font-weight:600; transition:background 0.15s; margin-bottom:6px; }
+    #play-btn:hover { background:rgba(250,204,21,0.25); }
+    #speed-row { display:flex; align-items:center; gap:6px; font-size:10px; color:rgba(255,255,255,0.35); }
+    #speed-slider { flex:1; accent-color:#fde047; }
+    #ln-progress { width:100%; height:3px; background:rgba(255,255,255,0.08); border-radius:2px; margin-top:8px; overflow:hidden; }
+    #ln-progress-bar { height:100%; background:#fde047; border-radius:2px; width:0%; transition:width 0.1s linear; }
+    #ln-count { font-size:10px; color:rgba(255,255,255,0.3); text-align:center; margin-top:6px; }
 
-    /* Leaflet attribution */
-    .leaflet-control-attribution { background: rgba(0,0,0,0.5) !important; color: rgba(255,255,255,0.3) !important; font-size: 9px !important; }
-    .leaflet-control-attribution a { color: rgba(255,255,255,0.4) !important; }
+    /* ── Footer ── */
+    #info-row { margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.06); font-size:10px; color:rgba(255,255,255,0.3); display:flex; justify-content:space-between; align-items:center; }
+    #refresh-btn { background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:13px; transition:color 0.2s; }
+    #refresh-btn:hover { color:rgba(255,255,255,0.7); }
 
-    /* Lightning flash keyframes */
-    @keyframes flash {
-      0%   { opacity: 1; r: 6; }
-      30%  { opacity: 0.9; r: 10; }
-      100% { opacity: 0; r: 14; }
-    }
-    .ln-flash { animation: flash 1.8s ease-out forwards; }
+    /* ── Status bar ── */
+    #status { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); z-index:1000; background:rgba(8,8,20,0.92); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:6px 18px; font-size:12px; color:rgba(255,255,255,0.55); display:none; white-space:nowrap; }
+    #status.visible { display:block; }
+
+    /* ── Leaflet overrides ── */
+    .leaflet-popup-content-wrapper { background:rgba(8,8,20,0.96)!important; border:1px solid rgba(255,255,255,0.12)!important; border-radius:14px!important; box-shadow:0 12px 40px rgba(0,0,0,0.7)!important; color:#fff!important; padding:0!important; }
+    .leaflet-popup-content { margin:0!important; padding:14px 16px!important; }
+    .leaflet-popup-tip-container { display:none!important; }
+    .leaflet-popup-close-button { color:rgba(255,255,255,0.4)!important; top:8px!important; right:10px!important; }
+    .leaflet-control-attribution { background:rgba(0,0,0,0.5)!important; color:rgba(255,255,255,0.3)!important; font-size:9px!important; }
+    .leaflet-control-attribution a { color:rgba(255,255,255,0.4)!important; }
+
+    /* Popup content */
+    .popup-name  { font-size:13px; font-weight:600; margin-bottom:10px; }
+    .popup-grid  { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+    .popup-cell  { background:rgba(255,255,255,0.05); border-radius:8px; padding:7px 9px; }
+    .popup-label { font-size:9px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.5px; }
+    .popup-val   { font-size:16px; font-weight:700; margin-top:1px; }
+    .popup-meta  { font-size:10px; color:rgba(255,255,255,0.25); margin-top:10px; }
+
+    /* Wind arrows */
+    .wind-arrow-icon { background:none!important; border:none!important; }
+
+    /* Lightning flash */
+    @keyframes flash { 0%{opacity:1} 30%{opacity:0.9} 100%{opacity:0} }
+    .ln-flash { animation:flash 1.8s ease-out forwards; }
   </style>
 </head>
 <body>
-
 <div id="map"></div>
 
 <div id="panel">
   <h1>⛅ Norsk Vær Live</h1>
   <div class="subtitle">Frost API · Meteorologisk institutt</div>
 
-  <button class="param-btn active-temp" id="btn-temp"     onclick="setParam('temp')">🌡️ Temperatur</button>
-  <button class="param-btn"             id="btn-wind"     onclick="setParam('wind')">💨 Vindstyrke</button>
-  <button class="param-btn"             id="btn-precip"   onclick="setParam('precip')">🌧️ Nedbør</button>
-  <button class="param-btn"             id="btn-humid"    onclick="setParam('humid')">💧 Luftfuktighet</button>
+  <button class="param-btn active-temp" id="btn-temp"      onclick="setParam('temp')">🌡️ Temperatur</button>
+  <button class="param-btn"             id="btn-wind"      onclick="setParam('wind')">💨 Vindstyrke</button>
+  <button class="param-btn"             id="btn-precip"    onclick="setParam('precip')">🌧️ Nedbør</button>
+  <button class="param-btn"             id="btn-humid"     onclick="setParam('humid')">💧 Luftfuktighet</button>
   <button class="param-btn"             id="btn-lightning" onclick="setParam('lightning')">⚡ Lynnedslag</button>
 
+  <!-- Live / Animer toggle (hidden for lightning) -->
+  <hr class="panel-sep" />
+  <div id="mode-row">
+    <button class="mode-btn active" id="mode-live" onclick="setMode('live')">● Live</button>
+    <button class="mode-btn"        id="mode-anim" onclick="setMode('anim')">▶ Animer</button>
+  </div>
+
+  <!-- Animation controls (weather params) -->
+  <div id="anim-controls">
+    <div class="anim-row">
+      <button class="anim-opt active" id="range-24h" onclick="setRange('24h')">Siste 24 timer</button>
+      <button class="anim-opt"        id="range-30d" onclick="setRange('30d')">30 dager</button>
+    </div>
+
+    <div id="daily-type-row">
+      <button class="anim-opt active" id="dtype-noon" onclick="setDtype('noon')">Kl. 12:00</button>
+      <button class="anim-opt"        id="dtype-avg"  onclick="setDtype('avg')">Dagsgjennomsnitt</button>
+    </div>
+
+    <div id="hour-row">
+      <span>Tidspunkt:</span>
+      <input id="hour-input" type="number" min="0" max="23" value="12" />
+      <span>:00 lokal tid</span>
+    </div>
+
+    <button class="load-play-btn" id="anim-play-btn" onclick="toggleAnimWeather()">⬇ Last og spill</button>
+    <div id="anim-speed-row">
+      <span>Hastighet:</span>
+      <input id="anim-speed-slider" type="range" min="1" max="4" value="2" />
+      <span id="anim-speed-label">1s/ramme</span>
+    </div>
+    <div id="anim-progress"><div id="anim-progress-bar"></div></div>
+    <div id="anim-timestamp"></div>
+  </div>
+
+  <!-- Legend -->
   <div id="legend">
     <div id="legend-title"></div>
     <div id="legend-bar"></div>
     <div id="legend-labels"></div>
   </div>
 
+  <!-- Lightning controls -->
   <div id="lightning-controls">
     <div id="ln-time">Klikk Spill for å animere</div>
-    <button id="play-btn" onclick="togglePlay()">▶ Spill av mars 2026</button>
+    <button id="play-btn" onclick="toggleLightning()">▶ Spill av mars 2026</button>
     <div id="speed-row">
       <span>Hastighet:</span>
       <input id="speed-slider" type="range" min="1" max="5" value="3" />
@@ -247,114 +217,103 @@
 
   <div id="info-row">
     <span id="station-count">Laster…</span>
-    <button id="refresh-btn" title="Oppdater" onclick="loadWeather()">↺</button>
+    <button id="refresh-btn" title="Oppdater" onclick="refreshLive()">↺</button>
   </div>
 </div>
 
 <div id="status"></div>
 
 <script>
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
 //  CONFIG
-// ─────────────────────────────────────────────────────────────
-// Lokalt: bruk frost-proxy.js på port 3333. På Netlify: bruk serverless function.
-const AUTH  = null;
+// ═══════════════════════════════════════════════════════════════
 const FROST = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:3333/frost'
   : '/frost';
 
-// Geographic centers for station coverage across Norway
 const CENTERS = [
-  [58.1, 7.9], [59.0, 5.7], [59.9, 10.7], [60.4, 5.3],
-  [60.8, 11.5],[62.5, 6.2], [63.4, 10.4], [65.5, 13.5],
-  [68.5, 17.4],[69.7, 18.9],[70.5, 25.0], [70.0, 22.0],
+  [58.1,7.9],[59.0,5.7],[59.9,10.7],[60.4,5.3],
+  [60.8,11.5],[62.5,6.2],[63.4,10.4],[65.5,13.5],
+  [68.5,17.4],[69.7,18.9],[70.5,25.0],[70.0,22.0],
 ];
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
 //  PARAMETER DEFINITIONS
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
 const PARAMS = {
   temp: {
-    label: 'Temperatur', unit: '°C',
-    element: 'air_temperature',
-    min: -20, max: 30,
-    stops: [
-      [-20,'#0d47a1'],[-10,'#42a5f5'],[0,'#80deea'],
-      [5,'#a5d6a7'],[10,'#fff176'],[20,'#ffa726'],[30,'#c62828']
-    ],
-    legendTicks: ['-20','-10','0','10','20','30'],
+    label:'Temperatur', unit:'°C', element:'air_temperature',
+    stops:[[-20,'#0d47a1'],[-10,'#42a5f5'],[0,'#80deea'],[5,'#a5d6a7'],[10,'#fff176'],[20,'#ffa726'],[30,'#c62828']],
+    legendTicks:['-20','-10','0','10','20','30'],
   },
   wind: {
-    label: 'Vindstyrke', unit: ' m/s',
-    element: 'wind_speed',
-    min: 0, max: 25,
-    stops: [
-      [0,'#e8f5e9'],[5,'#66bb6a'],[10,'#ffd54f'],
-      [15,'#ff8f00'],[20,'#e53935'],[25,'#7b1fa2']
-    ],
-    legendTicks: ['0','5','10','15','20','25'],
+    label:'Vindstyrke', unit:' m/s', element:'wind_speed',
+    stops:[[0,'#e8f5e9'],[5,'#66bb6a'],[10,'#ffd54f'],[15,'#ff8f00'],[20,'#e53935'],[25,'#7b1fa2']],
+    legendTicks:['0','5','10','15','20','25'],
   },
   precip: {
-    label: 'Nedbør (1t)', unit: ' mm',
-    element: 'sum(precipitation_amount PT1H)',
-    min: 0, max: 10,
-    stops: [
-      [0,'#e3f2fd'],[1,'#90caf9'],[3,'#42a5f5'],
-      [6,'#1565c0'],[10,'#4a148c']
-    ],
-    legendTicks: ['0','2','4','6','8','10'],
+    label:'Nedbør (1t)', unit:' mm', element:'sum(precipitation_amount PT1H)',
+    stops:[[0,'#e3f2fd'],[1,'#90caf9'],[3,'#42a5f5'],[6,'#1565c0'],[10,'#4a148c']],
+    legendTicks:['0','2','4','6','8','10'],
   },
   humid: {
-    label: 'Luftfuktighet', unit: '%',
-    element: 'relative_humidity',
-    min: 0, max: 100,
-    stops: [
-      [0,'#fff9c4'],[30,'#c8e6c9'],[60,'#81d4fa'],
-      [80,'#1565c0'],[100,'#1a237e']
-    ],
-    legendTicks: ['0','20','40','60','80','100'],
+    label:'Luftfuktighet', unit:'%', element:'relative_humidity',
+    stops:[[0,'#fff9c4'],[30,'#c8e6c9'],[60,'#81d4fa'],[80,'#1565c0'],[100,'#1a237e']],
+    legendTicks:['0','20','40','60','80','100'],
   },
 };
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
 //  STATE
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
 let map, markersLayer, lightningLayer;
 let allStations  = {};
-let obsCache     = {};       // { 'temp': {SN...: {value,time,unit}}, ... }
-let lightningData= [];       // parsed lightning rows
+let liveCache    = {};   // {param: {SN: {value, time, direction?}}}
+let histFrames   = [];   // [{ts, label, data:{SN:value}}]
 let currentParam = 'temp';
+let currentMode  = 'live'; // 'live' | 'anim'
+let animRange    = '24h';
+let animDtype    = 'noon';  // 'noon' | 'avg'
 
-// Lightning animation state
-let lnPlaying    = false;
-let lnIndex      = 0;
-let lnTimer      = null;
-let lnSpeeds     = [30, 20, 12, 6, 2];  // ms per strike at speed 1-5
+// Weather animation
+let animPlaying  = false;
+let animIndex    = 0;
+let animTimer    = null;
+const ANIM_SPEEDS = [2000, 1000, 500, 200]; // ms per frame at speed 1-4
 
-// ─────────────────────────────────────────────────────────────
+// Lightning
+let lnData    = [];
+let lnPlaying = false;
+let lnIndex   = 0;
+let lnTimer   = null;
+const LN_SPEEDS = [30,20,12,6,2];
+
+// ═══════════════════════════════════════════════════════════════
 //  INIT
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
 function init() {
   map = L.map('map', { center:[65.0,16.0], zoom:5, zoomControl:false });
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19
   }).addTo(map);
   L.control.zoom({ position:'topright' }).addTo(map);
-
   markersLayer  = L.layerGroup().addTo(map);
   lightningLayer= L.layerGroup().addTo(map);
 
   updateLegend();
-  loadWeather();
-  setInterval(loadWeather, 10 * 60 * 1000);
+  loadLive('temp');   // Only load current param on startup
+  setInterval(() => { if(currentMode==='live') loadLive(currentParam); }, 10*60*1000);
 
-  document.getElementById('speed-slider').addEventListener('input', updateSpeedLabel);
-  updateSpeedLabel();
+  document.getElementById('speed-slider').addEventListener('input', updateLnSpeedLabel);
+  document.getElementById('anim-speed-slider').addEventListener('input', updateAnimSpeedLabel);
+  document.getElementById('hour-input').addEventListener('change', () => { histFrames=[]; });
+  updateLnSpeedLabel();
+  updateAnimSpeedLabel();
 }
 
-// ─────────────────────────────────────────────────────────────
-//  STATUS / HELPERS
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════
 function setStatus(msg) {
   const el = document.getElementById('status');
   el.textContent = msg;
@@ -362,165 +321,190 @@ function setStatus(msg) {
 }
 
 function hexToRgb(hex) {
-  return [
-    parseInt(hex.slice(1,3),16),
-    parseInt(hex.slice(3,5),16),
-    parseInt(hex.slice(5,7),16),
-  ];
+  return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
 }
 
 function getColor(value, param) {
   const stops = PARAMS[param].stops;
-  const min   = stops[0][0];
-  const max   = stops[stops.length-1][0];
-  const v     = Math.max(min, Math.min(max, value));
-
-  for (let i = 1; i < stops.length; i++) {
+  const v = Math.max(stops[0][0], Math.min(stops[stops.length-1][0], value));
+  for (let i=1; i<stops.length; i++) {
     if (v <= stops[i][0]) {
-      const t  = (v - stops[i-1][0]) / (stops[i][0] - stops[i-1][0]);
-      const c1 = hexToRgb(stops[i-1][1]);
-      const c2 = hexToRgb(stops[i][1]);
-      const r  = Math.round(c1[0] + (c2[0]-c1[0])*t);
-      const g  = Math.round(c1[1] + (c2[1]-c1[1])*t);
-      const b  = Math.round(c1[2] + (c2[2]-c1[2])*t);
-      return `rgb(${r},${g},${b})`;
+      const t = (v-stops[i-1][0])/(stops[i][0]-stops[i-1][0]);
+      const [r1,g1,b1]=hexToRgb(stops[i-1][1]), [r2,g2,b2]=hexToRgb(stops[i][1]);
+      return `rgb(${Math.round(r1+(r2-r1)*t)},${Math.round(g1+(g2-g1)*t)},${Math.round(b1+(b2-b1)*t)})`;
     }
   }
   return stops[stops.length-1][1];
 }
 
-// ─────────────────────────────────────────────────────────────
-//  PARAMETER SWITCHING
-// ─────────────────────────────────────────────────────────────
-function setParam(p) {
-  if (lnPlaying) stopPlay();
+function fmtDate(d) { return d.toISOString().slice(0,19); }
 
+// ═══════════════════════════════════════════════════════════════
+//  PARAMETER + MODE SWITCHING
+// ═══════════════════════════════════════════════════════════════
+function setParam(p) {
+  stopAnimWeather(); stopLightning();
   currentParam = p;
 
-  // Reset all button classes
   ['temp','wind','precip','humid','lightning'].forEach(k => {
-    const btn = document.getElementById('btn-' + k);
-    btn.className = 'param-btn' + (k===p ? ' active-'+k : '');
+    document.getElementById('btn-'+k).className = 'param-btn' + (k===p?' active-'+k:'');
   });
 
-  const lnControls = document.getElementById('lightning-controls');
-  lnControls.classList.toggle('visible', p === 'lightning');
-  document.getElementById('legend').style.display = p === 'lightning' ? 'none' : 'block';
+  const isLightning = p === 'lightning';
+  document.getElementById('mode-row').classList.toggle('visible', !isLightning);
+  document.getElementById('lightning-controls').classList.toggle('visible', isLightning);
+  document.getElementById('legend').style.display = isLightning ? 'none' : 'block';
 
-  updateLegend();
+  if (!isLightning) {
+    updateLegend();
+    setMode('live'); // Reset to live when switching param
+  }
+
   markersLayer.clearLayers();
   lightningLayer.clearLayers();
 
-  if (p === 'lightning') {
-    loadLightning();
+  if (isLightning) loadLightning();
+  else if (!liveCache[p]) loadLive(p);
+  else renderLive();
+}
+
+function setMode(m) {
+  currentMode = m;
+  document.getElementById('mode-live').classList.toggle('active', m==='live');
+  document.getElementById('mode-anim').classList.toggle('active', m==='anim');
+  document.getElementById('anim-controls').classList.toggle('visible', m==='anim');
+
+  if (m === 'live') {
+    stopAnimWeather();
+    markersLayer.clearLayers();
+    if (liveCache[currentParam]) renderLive();
+    else loadLive(currentParam);
   } else {
-    renderWeather();
+    markersLayer.clearLayers();
+    histFrames = []; // force reload when mode changes
+    updateDailyTypeVisibility();
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+function setRange(r) {
+  animRange = r;
+  histFrames = [];
+  document.getElementById('range-24h').classList.toggle('active', r==='24h');
+  document.getElementById('range-30d').classList.toggle('active', r==='30d');
+  updateDailyTypeVisibility();
+}
+
+function setDtype(t) {
+  animDtype = t;
+  histFrames = [];
+  document.getElementById('dtype-noon').classList.toggle('active', t==='noon');
+  document.getElementById('dtype-avg').classList.toggle('active', t==='avg');
+  document.getElementById('hour-row').classList.toggle('visible', t==='noon');
+}
+
+function updateDailyTypeVisibility() {
+  const show30d = animRange === '30d';
+  document.getElementById('daily-type-row').classList.toggle('visible', show30d);
+  document.getElementById('hour-row').classList.toggle('visible', show30d && animDtype==='noon');
+}
+
+function refreshLive() {
+  liveCache[currentParam] = null;
+  loadLive(currentParam);
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  LEGEND
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
 function updateLegend() {
-  if (currentParam === 'lightning') return;
+  if (!PARAMS[currentParam]) return;
   const p = PARAMS[currentParam];
   document.getElementById('legend-title').textContent = p.label + ' (' + p.unit.trim() + ')';
-
-  const cols = p.stops.map(s => s[1]);
   document.getElementById('legend-bar').style.background =
-    'linear-gradient(to right,' + cols.join(',') + ')';
-
+    'linear-gradient(to right,' + p.stops.map(s=>s[1]).join(',') + ')';
   document.getElementById('legend-labels').innerHTML =
-    p.legendTicks.map(t => '<span>'+t+'</span>').join('');
+    p.legendTicks.map(t=>'<span>'+t+'</span>').join('');
 }
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
 //  FETCH STATIONS
-// ─────────────────────────────────────────────────────────────
-async function fetchStations() {
-  const promises = CENTERS.map(([lat,lon]) => {
-    const url = `${FROST}/sources/v0.jsonld?types=SensorSystem`
-      + `&fields=id,name,geometry,masl,municipality,county`
-      + `&geometry=nearest(POINT(${lon}%20${lat}))&nearestmaxcount=150`;
-    return fetch(url)
-      .then(r => r.json()).then(d => d.data||[]).catch(()=>[]);
-  });
+// ═══════════════════════════════════════════════════════════════
+async function ensureStations() {
+  if (Object.keys(allStations).length > 0) return;
+  setStatus('Henter værstasjoner…');
+  const promises = CENTERS.map(([lat,lon]) =>
+    fetch(`${FROST}/sources/v0.jsonld?types=SensorSystem&fields=id,name,geometry,masl,municipality,county`
+         +`&geometry=nearest(POINT(${lon}%20${lat}))&nearestmaxcount=150`)
+    .then(r=>r.json()).then(d=>d.data||[]).catch(()=>[])
+  );
   const results = await Promise.all(promises);
-  const stations = {};
   results.flat().forEach(s => {
-    if (s.id && s.geometry?.coordinates) stations[s.id] = s;
+    if (s.id && s.geometry?.coordinates) allStations[s.id] = s;
   });
-  return stations;
 }
 
-// ─────────────────────────────────────────────────────────────
-//  FETCH OBSERVATIONS
-// ─────────────────────────────────────────────────────────────
-async function fetchObs(ids, element) {
+// ═══════════════════════════════════════════════════════════════
+//  FETCH LIVE OBSERVATIONS
+// ═══════════════════════════════════════════════════════════════
+async function fetchLiveObs(ids, param) {
   const BATCH = 50;
   const results = {};
-  for (let i = 0; i < ids.length; i += BATCH) {
-    const batch = ids.slice(i, i+BATCH);
+  const isWind = param === 'wind';
+  const elements = isWind ? 'wind_speed,wind_from_direction' : PARAMS[param].element;
+
+  for (let i=0; i<ids.length; i+=BATCH) {
+    const batch = ids.slice(i,i+BATCH);
     const url = `${FROST}/observations/v0.jsonld`
       + `?sources=${encodeURIComponent(batch.join(','))}`
       + `&referencetime=latest`
-      + `&elements=${encodeURIComponent(element)}`;
+      + `&elements=${encodeURIComponent(elements)}`;
     try {
-      const r = await fetch(url, {});
-      const d = await r.json();
+      const d = await fetch(url).then(r=>r.json());
       (d.data||[]).forEach(item => {
-        const sid  = item.sourceId.split(':')[0];
-        const obs  = item.observations || [];
-        // Prefer PT10M or PT1H resolution
-        const best = obs.find(o => ['PT10M','PT1H'].includes(o.timeResolution)) || obs[0];
-        if (best) results[sid] = { value:best.value, time:item.referenceTime, unit:best.unit };
+        const sid = item.sourceId.split(':')[0];
+        const obs = item.observations || [];
+        const pick = (el) => obs.find(o=>o.elementId===el && ['PT10M','PT1H'].includes(o.timeResolution))
+                          || obs.find(o=>o.elementId===el);
+        const speedObs = isWind ? pick('wind_speed') : pick(PARAMS[param].element);
+        if (!speedObs) return;
+        results[sid] = { value:speedObs.value, time:item.referenceTime };
+        if (isWind) {
+          const dirObs = pick('wind_from_direction');
+          results[sid].direction = dirObs ? dirObs.value : null;
+        }
       });
-    } catch(e) { /* skip failed batch */ }
+    } catch(e) {}
   }
   return results;
 }
 
-// ─────────────────────────────────────────────────────────────
-//  LOAD WEATHER (main)
-// ─────────────────────────────────────────────────────────────
-async function loadWeather() {
-  if (currentParam === 'lightning') return;
-  setStatus('Henter værstasjoner…');
+// ═══════════════════════════════════════════════════════════════
+//  LOAD LIVE DATA
+// ═══════════════════════════════════════════════════════════════
+async function loadLive(param) {
   try {
-    if (Object.keys(allStations).length === 0) {
-      allStations = await fetchStations();
-    }
+    await ensureStations();
     const ids = Object.keys(allStations);
-    setStatus(`Henter observasjoner for ${ids.length} stasjoner…`);
-
-    // Load all 4 params in parallel
-    const [tData, wData, pData, hData] = await Promise.all([
-      fetchObs(ids, PARAMS.temp.element),
-      fetchObs(ids, PARAMS.wind.element),
-      fetchObs(ids, PARAMS.precip.element),
-      fetchObs(ids, PARAMS.humid.element),
-    ]);
-    obsCache = { temp:tData, wind:wData, precip:pData, humid:hData };
-
-    const nData = Object.keys(tData).length;
-    document.getElementById('station-count').textContent =
-      `${ids.length} stasjoner · ${nData} med data`;
-
+    setStatus(`Henter ${PARAMS[param].label.toLowerCase()} for ${ids.length} stasjoner…`);
+    liveCache[param] = await fetchLiveObs(ids, param);
+    const n = Object.keys(liveCache[param]).length;
+    document.getElementById('station-count').textContent = `${ids.length} st. · ${n} med data`;
     setStatus('');
-    renderWeather();
+    if (currentMode==='live' && currentParam===param) renderLive();
   } catch(e) {
-    setStatus('Feil: ' + e.message + ' — er frost-proxy.js startet?');
+    setStatus('Feil: ' + e.message);
     console.error(e);
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  RENDER WEATHER MARKERS
-// ─────────────────────────────────────────────────────────────
-function renderWeather() {
+// ═══════════════════════════════════════════════════════════════
+//  RENDER LIVE — with wind arrows
+// ═══════════════════════════════════════════════════════════════
+function renderLive() {
   markersLayer.clearLayers();
-  const data  = obsCache[currentParam] || {};
+  const data  = liveCache[currentParam] || {};
   const param = PARAMS[currentParam];
+  const isWind = currentParam === 'wind';
 
   Object.entries(allStations).forEach(([id, st]) => {
     const obs = data[id];
@@ -529,184 +513,344 @@ function renderWeather() {
     if (!lat||!lon) return;
 
     const color = getColor(obs.value, currentParam);
+    let marker;
 
-    const marker = L.circleMarker([lat,lon], {
-      radius:      7,
-      fillColor:   color,
-      fillOpacity: 0.85,
-      color:       'rgba(255,255,255,0.25)',
-      weight:      1.5,
-    });
+    if (isWind && obs.direction != null) {
+      // Arrow pointing in wind travel direction (from + 180°)
+      const rot = (obs.direction + 180) % 360;
+      const sz  = Math.max(18, Math.min(30, 14 + obs.value));
+      marker = L.marker([lat,lon], {
+        icon: L.divIcon({
+          html: `<svg width="${sz}" height="${sz}" viewBox="-10 -10 20 20"
+                      style="transform:rotate(${rot}deg);filter:drop-shadow(0 0 3px ${color}88)">
+                   <polygon points="0,-9 -4,4 0,1.5 4,4"
+                            fill="${color}" stroke="rgba(255,255,255,0.25)" stroke-width="0.7"/>
+                 </svg>`,
+          className: 'wind-arrow-icon',
+          iconSize:  [sz,sz],
+          iconAnchor:[sz/2,sz/2],
+        })
+      });
+    } else {
+      marker = L.circleMarker([lat,lon], {
+        radius:7, fillColor:color, fillOpacity:0.85,
+        color:'rgba(255,255,255,0.25)', weight:1.5,
+      });
+    }
 
-    // Build popup
-    const rows = ['temp','wind','precip','humid'].map(p => {
-      const v = obsCache[p]?.[id];
-      if (!v || v.value == null) return '';
+    // Popup: show all cached live params
+    const rows = Object.keys(PARAMS).map(p => {
+      const v = liveCache[p]?.[id];
+      if (!v || v.value==null) return '';
       const c = getColor(v.value, p);
+      const extra = (p==='wind' && v.direction!=null)
+        ? `<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">${windDirName(v.direction)}</div>` : '';
       return `<div class="popup-cell">
         <div class="popup-label">${PARAMS[p].label}</div>
         <div class="popup-val" style="color:${c}">${v.value}${PARAMS[p].unit}</div>
+        ${extra}
       </div>`;
     }).join('');
 
     const time = obs.time
-      ? new Date(obs.time).toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'})
-      : '';
-
+      ? new Date(obs.time).toLocaleTimeString('no-NO',{hour:'2-digit',minute:'2-digit'}) : '';
     marker.bindPopup(`
       <div class="popup-name">${st.name}</div>
       <div class="popup-grid">${rows}</div>
       <div class="popup-meta">
-        ${[st.municipality, st.county ? st.county : ''].filter(Boolean).join(' · ')}
-        ${st.masl != null ? ' · ' + st.masl + ' moh.' : ''}
-        ${time ? ' · Kl. ' + time : ''}
-      </div>
-    `, { maxWidth:280 });
+        ${[st.municipality,st.county].filter(Boolean).join(' · ')}
+        ${st.masl!=null?' · '+st.masl+' moh.':''}
+        ${time?' · Kl. '+time:''}
+      </div>`, { maxWidth:280 });
 
-    marker.bindTooltip(obs.value + param.unit, {
-      direction:'top', className:'', permanent:false
-    });
-
+    const tooltip = isWind && obs.direction!=null
+      ? `${obs.value}${param.unit} ${windDirName(obs.direction)}`
+      : obs.value + param.unit;
+    marker.bindTooltip(tooltip, { direction:'top', permanent:false });
     markersLayer.addLayer(marker);
   });
 }
 
-// ─────────────────────────────────────────────────────────────
-//  LIGHTNING — FETCH
-// ─────────────────────────────────────────────────────────────
+function windDirName(deg) {
+  const dirs = ['N','NNØ','NØ','ØNØ','Ø','ØSØ','SØ','SSØ','S','SSV','SV','VSV','V','VNV','NV','NNV'];
+  return dirs[Math.round(deg/22.5) % 16];
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FETCH HISTORICAL OBSERVATIONS
+// ═══════════════════════════════════════════════════════════════
+async function fetchHistObs(param, range, dtype, hour) {
+  const ids = Object.keys(allStations);
+  // Limit to 250 stations for historical to keep response sizes manageable
+  const targetIds = ids.slice(0, 250);
+
+  const now  = new Date();
+  const from = new Date(now);
+  if (range === '24h') from.setHours(from.getHours() - 25);
+  else                 from.setDate(from.getDate() - 31);
+
+  const reftime  = `${fmtDate(from)}/${fmtDate(now)}`;
+  const element  = PARAMS[param].element;
+  const BATCH    = 30; // smaller batches — more data per station
+
+  const raw = {}; // {SN: [{ts: ISO string, value}]}
+
+  let done = 0;
+  for (let i=0; i<targetIds.length; i+=BATCH) {
+    const batch = targetIds.slice(i,i+BATCH);
+    const url = `${FROST}/observations/v0.jsonld`
+      + `?sources=${encodeURIComponent(batch.join(','))}`
+      + `&referencetime=${encodeURIComponent(reftime)}`
+      + `&elements=${encodeURIComponent(element)}`
+      + `&timeresolutions=PT1H`;
+    try {
+      const d = await fetch(url).then(r=>r.json());
+      (d.data||[]).forEach(item => {
+        const sid = item.sourceId.split(':')[0];
+        const obs = (item.observations||[]).find(o=>o.timeResolution==='PT1H') || (item.observations||[])[0];
+        if (!obs) return;
+        if (!raw[sid]) raw[sid] = [];
+        raw[sid].push({ ts: item.referenceTime, value: obs.value });
+      });
+    } catch(e) {}
+    done += batch.length;
+    setStatus(`Laster historiske data… ${Math.round(done/targetIds.length*100)}%`);
+  }
+
+  // Build frames
+  if (range === '24h') {
+    // One frame per hour, group by timestamp
+    const tsMap = {}; // {ISO ts: {SN: value}}
+    Object.entries(raw).forEach(([sid, pts]) => {
+      pts.forEach(({ts,value}) => {
+        if (!tsMap[ts]) tsMap[ts] = {};
+        tsMap[ts][sid] = value;
+      });
+    });
+    return Object.entries(tsMap)
+      .sort((a,b)=>a[0].localeCompare(b[0]))
+      .map(([ts,data]) => ({
+        ts: new Date(ts), data,
+        label: new Date(ts).toLocaleString('no-NO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+      }));
+  } else {
+    // 30 days — group by date
+    const byDay = {}; // {YYYY-MM-DD: {SN: [values at that hour]}}
+    Object.entries(raw).forEach(([sid, pts]) => {
+      pts.forEach(({ts,value}) => {
+        const d   = new Date(ts);
+        const utcH = d.getUTCHours();
+        // Norway UTC+1 (winter) / UTC+2 (summer): local noon ≈ 10-11 UTC
+        const localH = utcH + 1; // approximate
+        const date   = ts.slice(0,10);
+        if (!byDay[date]) byDay[date] = {};
+        if (!byDay[date][sid]) byDay[date][sid] = [];
+        byDay[date][sid].push({ localH, value });
+      });
+    });
+
+    return Object.entries(byDay)
+      .sort((a,b)=>a[0].localeCompare(b[0]))
+      .map(([date, stMap]) => {
+        const data = {};
+        const targetH = parseInt(document.getElementById('hour-input').value)||12;
+        Object.entries(stMap).forEach(([sid, pts]) => {
+          if (dtype === 'avg') {
+            const vals = pts.map(p=>p.value).filter(v=>v!=null);
+            if (vals.length) data[sid] = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10;
+          } else {
+            // Pick closest to chosen hour
+            const best = pts.reduce((a,b)=>
+              Math.abs(a.localH-targetH)<Math.abs(b.localH-targetH)?a:b);
+            if (best) data[sid] = best.value;
+          }
+        });
+        const d = new Date(date);
+        return {
+          ts: d, data,
+          label: d.toLocaleDateString('no-NO',{weekday:'short',day:'numeric',month:'short'})
+               + (dtype==='noon' ? ` kl.${document.getElementById('hour-input').value}:00` : ' (snitt)')
+        };
+      });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  WEATHER ANIMATION
+// ═══════════════════════════════════════════════════════════════
+async function toggleAnimWeather() {
+  if (animPlaying) { stopAnimWeather(); return; }
+
+  if (histFrames.length === 0) {
+    // Need to load data first
+    document.getElementById('anim-play-btn').textContent = '⏳ Laster…';
+    document.getElementById('anim-play-btn').disabled = true;
+    try {
+      histFrames = await fetchHistObs(currentParam, animRange, animDtype);
+    } catch(e) {
+      setStatus('Feil ved lasting av historiske data');
+      console.error(e);
+      document.getElementById('anim-play-btn').textContent = '⬇ Last og spill';
+      document.getElementById('anim-play-btn').disabled = false;
+      return;
+    }
+    document.getElementById('anim-play-btn').disabled = false;
+    setStatus('');
+    animIndex = 0;
+  }
+
+  if (histFrames.length === 0) { setStatus('Ingen data funnet'); return; }
+
+  animPlaying = true;
+  document.getElementById('anim-play-btn').textContent = '⏸ Pause';
+  document.getElementById('anim-play-btn').classList.add('playing');
+  scheduleAnimFrame();
+}
+
+function stopAnimWeather() {
+  animPlaying = false;
+  clearTimeout(animTimer);
+  document.getElementById('anim-play-btn').textContent = histFrames.length ? '▶ Fortsett' : '⬇ Last og spill';
+  document.getElementById('anim-play-btn').classList.remove('playing');
+}
+
+function scheduleAnimFrame() {
+  if (!animPlaying || animIndex >= histFrames.length) {
+    if (animIndex >= histFrames.length) {
+      animPlaying = false;
+      animIndex = 0;
+      document.getElementById('anim-play-btn').textContent = '▶ Spill igjen';
+      document.getElementById('anim-play-btn').classList.remove('playing');
+      document.getElementById('anim-progress-bar').style.width = '100%';
+    }
+    return;
+  }
+  const speed = parseInt(document.getElementById('anim-speed-slider').value);
+  const delay = ANIM_SPEEDS[speed-1];
+
+  animTimer = setTimeout(() => {
+    renderAnimFrame(histFrames[animIndex]);
+    document.getElementById('anim-timestamp').textContent = histFrames[animIndex].label;
+    document.getElementById('anim-progress-bar').style.width =
+      ((animIndex+1)/histFrames.length*100).toFixed(1)+'%';
+    animIndex++;
+    scheduleAnimFrame();
+  }, delay);
+}
+
+function renderAnimFrame(frame) {
+  markersLayer.clearLayers();
+  const param = PARAMS[currentParam];
+  Object.entries(frame.data).forEach(([id, value]) => {
+    const st = allStations[id];
+    if (!st) return;
+    const [lon,lat] = st.geometry.coordinates;
+    if (!lat||!lon) return;
+    const color = getColor(value, currentParam);
+    const marker = L.circleMarker([lat,lon], {
+      radius:7, fillColor:color, fillOpacity:0.85,
+      color:'rgba(255,255,255,0.2)', weight:1,
+    });
+    marker.bindTooltip(`${st.name}: ${value}${param.unit}`, { direction:'top' });
+    markersLayer.addLayer(marker);
+  });
+}
+
+function updateAnimSpeedLabel() {
+  const labels = ['2s','1s','0.5s','0.2s'];
+  const s = parseInt(document.getElementById('anim-speed-slider').value);
+  document.getElementById('anim-speed-label').textContent = labels[s-1]+'/ramme';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LIGHTNING
+// ═══════════════════════════════════════════════════════════════
 async function loadLightning() {
-  if (lightningData.length > 0) {
-    document.getElementById('ln-count').textContent =
-      lightningData.length + ' lynnedslag lastet (mars 2026)';
+  if (lnData.length > 0) {
+    document.getElementById('ln-count').textContent = lnData.length + ' lynnedslag · mars 2026';
     return;
   }
   setStatus('Henter lynnedslag for mars 2026…');
   try {
-    const resp = await fetch(
-      `${FROST}/lightning/v0.jsonld?referencetime=2026-03-01/2026-03-29`,
-      {}
-    );
+    const resp = await fetch(`${FROST}/lightning/v0.jsonld?referencetime=2026-03-01/2026-03-29`);
     const text = await resp.text();
-    // Format: type year month day hour min sec nanosec lat lon amplitude ...
-    lightningData = text.trim().split('\n').map(line => {
+    lnData = text.trim().split('\n').map(line => {
       const c = line.trim().split(/\s+/);
       if (c.length < 11) return null;
       return {
-        lat: parseFloat(c[8]),
-        lon: parseFloat(c[9]),
-        amp: parseFloat(c[10]),   // kA, negative = ground stroke
-        ts:  new Date(
-          parseInt(c[1]), parseInt(c[2])-1, parseInt(c[3]),
-          parseInt(c[4]), parseInt(c[5]), parseInt(c[6])
-        ),
+        lat:parseFloat(c[8]), lon:parseFloat(c[9]), amp:parseFloat(c[10]),
+        ts:new Date(+c[1],+c[2]-1,+c[3],+c[4],+c[5],+c[6]),
       };
     }).filter(Boolean);
-
-    lightningData.sort((a,b) => a.ts - b.ts);
-
+    lnData.sort((a,b)=>a.ts-b.ts);
     setStatus('');
-    document.getElementById('ln-count').textContent =
-      lightningData.length + ' lynnedslag · mars 2026';
-    document.getElementById('ln-time').textContent = 'Klikk Spill for å animere';
-  } catch(e) {
-    setStatus('Feil ved lasting av lyndata');
-    console.error(e);
-  }
+    document.getElementById('ln-count').textContent = lnData.length + ' lynnedslag · mars 2026';
+    document.getElementById('ln-time').textContent  = 'Klikk Spill for å animere';
+  } catch(e) { setStatus('Feil ved lasting av lyndata'); }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  LIGHTNING — ANIMATION
-// ─────────────────────────────────────────────────────────────
-function updateSpeedLabel() {
-  const s = parseInt(document.getElementById('speed-slider').value);
-  const labels = ['¼×','½×','1×','2×','4×'];
-  document.getElementById('speed-label').textContent = labels[s-1];
+function toggleLightning() {
+  if (lnPlaying) stopLightning();
+  else           startLightning();
 }
 
-function togglePlay() {
-  if (lnPlaying) stopPlay();
-  else           startPlay();
-}
-
-function startPlay() {
-  if (lightningData.length === 0) return;
+function startLightning() {
+  if (!lnData.length) return;
   lnPlaying = true;
   document.getElementById('play-btn').textContent = '⏸ Pause';
-  if (lnIndex >= lightningData.length) lnIndex = 0;
-  scheduleNext();
+  if (lnIndex >= lnData.length) lnIndex = 0;
+  scheduleLnFrame();
 }
 
-function stopPlay() {
+function stopLightning() {
   lnPlaying = false;
   clearTimeout(lnTimer);
   document.getElementById('play-btn').textContent = '▶ Spill av mars 2026';
 }
 
-function scheduleNext() {
-  if (!lnPlaying || lnIndex >= lightningData.length) {
-    if (lnIndex >= lightningData.length) {
-      lnPlaying = false;
-      lnIndex   = 0;
-      document.getElementById('play-btn').textContent = '▶ Spill igjen';
-      document.getElementById('ln-progress-bar').style.width = '100%';
+function scheduleLnFrame() {
+  if (!lnPlaying || lnIndex >= lnData.length) {
+    if (lnIndex >= lnData.length) {
+      lnPlaying=false; lnIndex=0;
+      document.getElementById('play-btn').textContent='▶ Spill igjen';
+      document.getElementById('ln-progress-bar').style.width='100%';
     }
     return;
   }
-
   const speed = parseInt(document.getElementById('speed-slider').value);
-  const delay = lnSpeeds[speed - 1];
-
+  const delay = LN_SPEEDS[speed-1];
   lnTimer = setTimeout(() => {
-    // Draw BATCH strikes per tick for higher speeds
-    const batchSize = speed >= 4 ? 4 : speed >= 3 ? 2 : 1;
-    for (let b = 0; b < batchSize && lnIndex < lightningData.length; b++) {
-      drawStrike(lightningData[lnIndex]);
-      lnIndex++;
+    const batch = speed>=4?4:speed>=3?2:1;
+    for (let b=0; b<batch && lnIndex<lnData.length; b++) {
+      drawStrike(lnData[lnIndex++]);
     }
-
-    // Update UI
-    const strike = lightningData[Math.min(lnIndex, lightningData.length-1)];
+    const s = lnData[Math.min(lnIndex,lnData.length-1)];
     document.getElementById('ln-time').textContent =
-      strike.ts.toLocaleString('no-NO',{
-        day:'2-digit', month:'short',
-        hour:'2-digit', minute:'2-digit'
-      });
+      s.ts.toLocaleString('no-NO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     document.getElementById('ln-progress-bar').style.width =
-      (lnIndex / lightningData.length * 100).toFixed(1) + '%';
-
-    scheduleNext();
+      (lnIndex/lnData.length*100).toFixed(1)+'%';
+    scheduleLnFrame();
   }, delay);
 }
 
-function drawStrike({ lat, lon, amp }) {
-  const isCloud = amp >= 0;        // positive = cloud-to-cloud
-  const absAmp  = Math.abs(amp);
-  const radius  = Math.min(3 + absAmp * 0.12, 14);
-
-  // Color: yellow/white for cloud-to-ground, cyan for cloud-to-cloud
-  const color   = isCloud ? '#67e8f9' : '#fde047';
-  const glow    = isCloud ? 'rgba(103,232,249,0.6)' : 'rgba(253,224,71,0.7)';
-
-  const circle = L.circleMarker([lat,lon], {
-    radius:      radius,
-    fillColor:   color,
-    fillOpacity: 0.9,
-    color:       glow,
-    weight:      3,
-    className:   'ln-flash',
-  });
-
-  circle.addTo(lightningLayer);
-
-  // Fade out and remove after animation
-  setTimeout(() => {
-    try { lightningLayer.removeLayer(circle); } catch(_){}
-  }, 2200);
+function drawStrike({lat,lon,amp}) {
+  const isCloud = amp>=0;
+  const color   = isCloud?'#67e8f9':'#fde047';
+  const glow    = isCloud?'rgba(103,232,249,0.6)':'rgba(253,224,71,0.7)';
+  const radius  = Math.min(3+Math.abs(amp)*0.12,14);
+  const c = L.circleMarker([lat,lon],{radius,fillColor:color,fillOpacity:0.9,color:glow,weight:3,className:'ln-flash'});
+  c.addTo(lightningLayer);
+  setTimeout(()=>{ try{lightningLayer.removeLayer(c);}catch(_){} }, 2200);
 }
 
-// ─────────────────────────────────────────────────────────────
+function updateLnSpeedLabel() {
+  const labels=['¼×','½×','1×','2×','4×'];
+  document.getElementById('speed-label').textContent=labels[parseInt(document.getElementById('speed-slider').value)-1];
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  BOOT
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
 init();
 </script>
 </body>
