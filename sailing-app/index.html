@@ -2,362 +2,1038 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Norsk seilerportal – instrumenter, båtoppslagsverk, Norrating og nyheter" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#0a0e14" />
-  <title>SeilNorge – Din seilerportal</title>
-  <link rel="stylesheet" href="css/main.css" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Sailing Instrument</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* ============================================================
+       BASE / RESET
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0e14;
+      --surface:   #111820;
+      --border:    rgba(255,255,255,0.08);
+      --text:      #e8eaf0;
+      --muted:     #5a6070;
+      --accent:    #00d4ff;
+      --warn:      #ffd700;
+      --good:      #00e676;
+      --bad:       #ff5252;
+      --font-mono: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ============================================================
+       LAYOUT – Tab bar + content area
+    ============================================================ */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+    }
+
+    #tab-bar {
+      display: flex;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      order: 2;
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 8px 0 10px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 10px;
+      cursor: pointer;
+      transition: color .2s;
+    }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn svg { width: 22px; height: 22px; }
+
+    #content {
+      flex: 1;
+      overflow: hidden;
+      order: 1;
+    }
+
+    .tab-panel {
+      display: none;
+      height: 100%;
+      overflow-y: auto;
+    }
+    .tab-panel.active { display: flex; flex-direction: column; }
+
+    /* ============================================================
+       DASHBOARD
+    ============================================================ */
+    #panel-dashboard {
+      padding: 12px;
+      gap: 12px;
+    }
+
+    /* Compass + active waypoint row */
+    .compass-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 16px;
+    }
+
+    /* SVG Compass */
+    #compass-svg { flex-shrink: 0; }
+
+    .compass-legend { display: flex; flex-direction: column; gap: 6px; }
+    .legend-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+    .legend-line { width: 18px; height: 3px; border-radius: 2px; }
+
+    .wp-info { margin-top: 6px; }
+    .wp-label { font-size: 12px; font-weight: 600; color: var(--warn); display: flex; align-items: center; gap: 4px; }
+
+    /* Instrument grid */
+    .instrument-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .instrument-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .instrument-card.highlight {
+      border-color: rgba(255,215,0,.4);
+    }
+
+    .inst-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .inst-label svg { width: 12px; height: 12px; }
+    .instrument-card.highlight .inst-label { color: var(--warn); }
+
+    .inst-value {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+    .instrument-card.highlight .inst-value { color: var(--warn); }
+
+    .inst-sub { font-size: 10px; color: var(--muted); }
+
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2px 0;
+    }
+
+    .gps-accuracy {
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted);
+      padding-bottom: 4px;
+    }
+
+    /* ============================================================
+       MAP
+    ============================================================ */
+    #panel-map {
+      position: relative;
+    }
+
+    #map {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+    }
+
+    .map-controls {
+      position: absolute;
+      right: 12px;
+      bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1000;
+    }
+
+    .map-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(10,14,20,.85);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      font-size: 18px;
+    }
+    .map-btn:active { opacity: .7; }
+
+    .map-hint {
+      position: absolute;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10,14,20,.85);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 11px;
+      color: var(--muted);
+      backdrop-filter: blur(6px);
+      white-space: nowrap;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       WAYPOINTS LIST
+    ============================================================ */
+    #panel-waypoints {
+      padding: 12px;
+      gap: 8px;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      padding: 4px 0;
+    }
+
+    .wp-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .wp-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .wp-card.active-wp { border-color: rgba(255,215,0,.5); }
+
+    .wp-icon { font-size: 18px; flex-shrink: 0; }
+    .wp-details { flex: 1; min-width: 0; }
+    .wp-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wp-coords { font-size: 10px; color: var(--muted); font-family: var(--font-mono); }
+
+    .wp-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-small {
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .btn-select { color: var(--accent); border-color: rgba(0,212,255,.3); }
+    .btn-select.selected { color: var(--warn); border-color: rgba(255,215,0,.4); background: rgba(255,215,0,.05); }
+    .btn-delete { color: var(--bad); border-color: rgba(255,82,82,.3); }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 40px 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       MODAL – Add waypoint
+    ============================================================ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      backdrop-filter: blur(4px);
+      z-index: 9000;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.hidden { display: none; }
+
+    .modal-sheet {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px 20px 0 0;
+      padding: 20px 20px 36px;
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal-title { font-size: 16px; font-weight: 700; }
+    .modal-coords { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+
+    .modal-input {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 16px;
+      padding: 10px 14px;
+      outline: none;
+      width: 100%;
+    }
+    .modal-input:focus { border-color: var(--accent); }
+
+    .modal-buttons { display: flex; gap: 10px; }
+    .btn-primary {
+      flex: 1;
+      padding: 12px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: 15px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      padding: 12px 20px;
+      background: rgba(255,255,255,.07);
+      color: var(--text);
+      font-size: 15px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    /* ============================================================
+       COMPASS PERMISSION BANNER
+    ============================================================ */
+    #compass-banner {
+      background: rgba(0,212,255,.1);
+      border: 1px solid rgba(0,212,255,.2);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    #compass-banner.hidden { display: none; }
+    #compass-banner button {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Leaflet dark tiles hack */
+    .leaflet-tile-pane { filter: brightness(.85) contrast(1.1) saturate(.9); }
+
+    /* ============================================================
+       HEADER BAR
+    ============================================================ */
+    .header-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .header-title { font-size: 15px; font-weight: 700; letter-spacing: .3px; }
+    .header-gps {
+      font-size: 10px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .gps-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+    .gps-dot.ok { background: var(--good); box-shadow: 0 0 4px var(--good); }
+  </style>
 </head>
+
 <body>
+<div id="app">
 
-<!-- =====================================================================
-     NAVIGATION
-====================================================================== -->
-<nav id="nav">
-  <div class="nav-logo">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2 L3 20 L12 17 L21 20 Z"/>
-      <path d="M12 2 L12 17"/>
-    </svg>
-    SeilNorge
+  <!-- ===================== HEADER ===================== -->
+  <div class="header-bar">
+    <span class="header-title">⛵ Sailing Instrument</span>
+    <span class="header-gps">
+      <span class="gps-dot" id="gps-dot"></span>
+      <span id="gps-status-text">Venter på GPS…</span>
+    </span>
   </div>
 
-  <ul class="nav-links">
-    <li><a href="#hero"        data-nav-link>Hjem</a></li>
-    <li><a href="#instruments" data-nav-link>Instrumenter</a></li>
-    <li><a href="#baater"      data-nav-link>Båter</a></li>
-    <li><a href="#nyheter"     data-nav-link>Nyheter</a></li>
-  </ul>
+  <!-- ===================== CONTENT ===================== -->
+  <div id="content">
 
-  <button class="nav-hamburger" id="nav-hamburger" aria-label="Meny">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="3" y1="6"  x2="21" y2="6"/>
-      <line x1="3" y1="12" x2="21" y2="12"/>
-      <line x1="3" y1="18" x2="21" y2="18"/>
-    </svg>
-  </button>
-</nav>
+    <!-- ── DASHBOARD ── -->
+    <div id="panel-dashboard" class="tab-panel active">
 
-<!-- Mobile nav drawer -->
-<div id="nav-drawer">
-  <a href="#hero"        data-nav-link>🏠 Hjem</a>
-  <a href="#instruments" data-nav-link>⛵ Instrumenter</a>
-  <a href="#baater"      data-nav-link>🚢 Båtoppslagsverk</a>
-  <a href="#nyheter"     data-nav-link>📰 Nyheter</a>
-</div>
-
-<main>
-
-<!-- =====================================================================
-     HERO
-====================================================================== -->
-<section id="hero" class="section">
-  <div class="hero-bg-grid"></div>
-  <div class="section-inner">
-    <div class="hero-content">
-      <div class="hero-tag">Norsk seilerportal</div>
-      <h1 class="hero-title">
-        Navigér smartere.<br>
-        Seil <span class="accent">raskere</span>.
-      </h1>
-      <p class="hero-sub">
-        GPS-baserte seilinstrumenter, komplett båtoppslagsverk med Norrating-data,
-        og de siste nyhetene fra norsk og internasjonal seiling.
-      </p>
-      <div class="hero-actions">
-        <a href="#instruments" class="btn-primary" data-nav-link>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-          Åpne instrumenter
-        </a>
-        <a href="#baater" class="btn-secondary" data-nav-link>
-          Utforsk båter
-        </a>
+      <!-- Compass permission banner (iOS) -->
+      <div id="compass-banner">
+        <span>📱 Aktiver kompass for heading</span>
+        <button onclick="requestCompassPermission()">Aktiver</button>
       </div>
-    </div>
-  </div>
 
-  <!-- Feature pills -->
-  <div style="position:absolute;bottom:90px;left:0;right:0;">
-    <div class="section-inner">
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px">
-          <span style="font-size:18px">📍</span>
-          GPS · SOG · COG · VMG
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px">
-          <span style="font-size:18px">🗺️</span>
-          Kart med waypoints
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px">
-          <span style="font-size:18px">⚓</span>
-          ORC / Norrating-database
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px">
-          <span style="font-size:18px">⚖️</span>
-          Sammenlign båter
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Wave divider -->
-  <svg class="hero-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,50 1440,40 L1440,80 L0,80 Z" fill="#111820"/>
-  </svg>
-</section>
-
-<!-- =====================================================================
-     INSTRUMENTS
-====================================================================== -->
-<section id="instruments" class="section" style="background:var(--surface);padding-bottom:0">
-  <div class="section-inner" style="padding-bottom:0">
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">⛵ Seilinstrumenter</h2>
-        <p class="section-subtitle">GPS-baserte instrumenter — fungerer direkte i nettleseren, også på mobil</p>
-      </div>
-      <a href="sailing-app-kopi.html" target="_blank" class="btn-secondary" style="white-space:nowrap">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Åpne i fullskjerm
-      </a>
-    </div>
-
-    <div class="instrument-frame-wrap">
-      <div class="instrument-loading" id="instrument-loading">
-        <div class="loading-spinner"></div>
-        <span>Laster seilinstrumenter…</span>
-      </div>
-      <!-- src is set lazily in app.js when section enters viewport -->
-      <iframe id="instrument-iframe"
-              title="Seilinstrumenter"
-              allow="geolocation; gyroscope; accelerometer"
-              loading="lazy">
-      </iframe>
-    </div>
-  </div>
-</section>
-
-<!-- =====================================================================
-     BOATS ENCYCLOPEDIA
-====================================================================== -->
-<section id="baater" class="section">
-  <div class="section-inner">
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">🚢 Båtoppslagsverk</h2>
-        <p class="section-subtitle">
-          Søk i ORC-sertifiserte norske seilbåter, legg til egne og sammenlign side-om-side
-        </p>
-      </div>
-      <button class="btn-primary" onclick="openAddBoatModal()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Legg til båt
-      </button>
-    </div>
-
-    <!-- Search + filter bar -->
-    <div class="boats-controls">
-      <div class="search-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      <!-- Compass rose + waypoint info -->
+      <div class="compass-row">
+        <svg id="compass-svg" width="110" height="110" viewBox="0 0 110 110">
+          <!-- Outer ring -->
+          <circle cx="55" cy="55" r="52" stroke="rgba(255,255,255,0.1)" stroke-width="1" fill="none"/>
+          <!-- Tick marks -->
+          <g id="compass-ticks"></g>
+          <!-- Cardinal N E S W -->
+          <text x="55" y="10" text-anchor="middle" fill="#ff5252" font-size="10" font-weight="bold">N</text>
+          <text x="103" y="59" text-anchor="middle" fill="#5a6070" font-size="9">E</text>
+          <text x="55" y="104" text-anchor="middle" fill="#5a6070" font-size="9">S</text>
+          <text x="7" y="59" text-anchor="middle" fill="#5a6070" font-size="9">W</text>
+          <!-- COG needle (cyan) – rotates -->
+          <g id="needle-cog" transform="rotate(0, 55, 55)">
+            <polygon points="55,12 52,55 58,55" fill="rgba(0,212,255,0.7)"/>
+            <polygon points="55,98 52,55 58,55" fill="rgba(0,212,255,0.2)"/>
+          </g>
+          <!-- Heading needle (white) – rotates -->
+          <g id="needle-hdg" transform="rotate(0, 55, 55)">
+            <polygon points="55,8 53,55 57,55"  fill="rgba(255,255,255,0.9)"/>
+            <polygon points="55,98 53,55 57,55" fill="rgba(255,255,255,0.2)"/>
+          </g>
+          <!-- Bearing marker (yellow triangle) -->
+          <g id="bearing-marker" transform="rotate(0, 55, 55)" style="display:none">
+            <polygon points="55,16 52,24 58,24" fill="#ffd700"/>
+          </g>
+          <!-- Center dot -->
+          <circle cx="55" cy="55" r="4" fill="white"/>
         </svg>
-        <input id="boat-search" type="search" placeholder="Søk på navn, seilnummer, klasse…" autocomplete="off" />
+
+        <div>
+          <div class="compass-legend">
+            <div class="legend-row">
+              <div class="legend-line" style="background:#fff"></div>
+              Heading
+            </div>
+            <div class="legend-row">
+              <div class="legend-line" style="background:#00d4ff"></div>
+              COG
+            </div>
+            <div class="legend-row" id="bearing-legend" style="display:none">
+              <div class="legend-line" style="background:#ffd700"></div>
+              Bearing
+            </div>
+          </div>
+          <div class="wp-info" id="wp-info-label">
+            <div class="wp-label" style="color:var(--muted)">🏳 Ingen aktiv waypoint</div>
+          </div>
+        </div>
       </div>
-      <select id="boat-class-filter" class="filter-select">
-        <option value="alle">Alle klasser</option>
-      </select>
+
+      <!-- Primary instruments -->
+      <div class="instrument-grid">
+        <div class="instrument-card">
+          <div class="inst-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            SOG
+          </div>
+          <div class="inst-value" id="val-sog">—</div>
+          <div class="inst-sub">knop</div>
+        </div>
+        <div class="instrument-card">
+          <div class="inst-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+            COG
+          </div>
+          <div class="inst-value" id="val-cog">—</div>
+          <div class="inst-sub">grader</div>
+        </div>
+        <div class="instrument-card">
+          <div class="inst-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L12 22M12 2l-4 6M12 2l4 6"/></svg>
+            HDG
+          </div>
+          <div class="inst-value" id="val-hdg">—</div>
+          <div class="inst-sub" id="sub-hdg">kompass</div>
+        </div>
+        <div class="instrument-card highlight" id="card-vmg">
+          <div class="inst-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/><path d="M12 2v2M12 20v2"/></svg>
+            VMG
+          </div>
+          <div class="inst-value" id="val-vmg">—</div>
+          <div class="inst-sub">mot mål</div>
+        </div>
+      </div>
+
+      <!-- Waypoint instruments (hidden until active WP) -->
+      <div id="wp-instruments" style="display:none">
+        <hr class="section-divider"/>
+        <div class="instrument-grid">
+          <div class="instrument-card">
+            <div class="inst-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+              BRG
+            </div>
+            <div class="inst-value" id="val-brg">—</div>
+            <div class="inst-sub">bearing til mål</div>
+          </div>
+          <div class="instrument-card">
+            <div class="inst-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 12l4-4M3 12l4 4M21 12l-4-4M21 12l-4 4"/></svg>
+              DTW
+            </div>
+            <div class="inst-value" id="val-dtw">—</div>
+            <div class="inst-sub">avstand</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gps-accuracy" id="gps-accuracy"></div>
     </div>
 
-    <!-- Data source indicator -->
-    <div class="boats-status">
-      <span class="status-dot mock" id="data-source-dot"></span>
-      <span id="data-source-text">Laster data…</span>
-      &bull;
-      <span id="boat-count">—</span> båter
-    </div>
-
-    <!-- Boat grid -->
-    <div class="boat-grid" id="boat-grid">
-      <!-- Populated by boats.js -->
-      <div class="skeleton-card"><div class="skeleton-line wide"></div><div class="skeleton-line tall"></div></div>
-      <div class="skeleton-card"><div class="skeleton-line wide"></div><div class="skeleton-line tall"></div></div>
-      <div class="skeleton-card"><div class="skeleton-line wide"></div><div class="skeleton-line tall"></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- =====================================================================
-     NEWS
-====================================================================== -->
-<section id="nyheter" class="section">
-  <div class="section-inner">
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">📰 Seilinyheter</h2>
-        <p class="section-subtitle">Siste fra norsk og internasjonal seiling</p>
+    <!-- ── MAP ── -->
+    <div id="panel-map" class="tab-panel">
+      <div id="map"></div>
+      <div class="map-hint">Hold inne på kartet for å legge til waypoint</div>
+      <div class="map-controls">
+        <button class="map-btn" onclick="centerOnUser()" title="Sentrér på posisjon">📍</button>
       </div>
     </div>
-    <div class="news-grid" id="news-grid">
-      <!-- Populated by app.js -->
+
+    <!-- ── WAYPOINTS ── -->
+    <div id="panel-waypoints" class="tab-panel">
+      <div class="panel-title">Waypoints</div>
+      <div id="wp-list-container">
+        <div class="empty-state">Ingen waypoints ennå.<br>Hold inne på kartet for å legge til.</div>
+      </div>
     </div>
-  </div>
-</section>
 
-</main>
+  </div><!-- /content -->
 
-<!-- =====================================================================
-     FOOTER
-====================================================================== -->
-<footer>
-  <div class="section-inner">
-    <div class="footer-logo">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 2 L3 20 L12 17 L21 20 Z"/><path d="M12 2 L12 17"/>
+  <!-- ===================== TAB BAR ===================== -->
+  <div id="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
       </svg>
-      SeilNorge
-    </div>
-    <div class="footer-links">
-      <a href="https://www.seilforbundet.no" target="_blank" rel="noopener">Norges Seilforbund</a>
-      <a href="https://norrating.org" target="_blank" rel="noopener">NOR-Rating</a>
-      <a href="https://data.orc.org" target="_blank" rel="noopener">ORC Data</a>
-      <a href="https://www.yr.no" target="_blank" rel="noopener">Yr.no</a>
-    </div>
-    <p>
-      Båtdata fra <a href="https://data.orc.org" target="_blank" rel="noopener">ORC Certificate Database</a>.
-      Seilinstrumenter benytter GPS via nettleser-API.
-    </p>
-  </div>
-</footer>
-
-<!-- =====================================================================
-     COMPARE FLOATING BAR
-====================================================================== -->
-<div id="compare-bar">
-  <div>
-    <div class="compare-bar-count">0</div>
-    <div class="compare-bar-label">valgt</div>
-  </div>
-  <div class="compare-bar-boats"></div>
-  <div style="display:flex;gap:8px;flex-shrink:0">
-    <button class="btn-primary" onclick="openCompareOverlay()" style="padding:10px 18px;font-size:13px">
-      Sammenlign
+      Instrumenter
     </button>
-    <button class="btn-secondary" onclick="clearAllCompare()" style="padding:10px 14px;font-size:13px">
-      Nullstill
+    <button class="tab-btn" onclick="switchTab('map',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+        <line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
+      </svg>
+      Kart
+    </button>
+    <button class="tab-btn" onclick="switchTab('waypoints',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      Waypoints
     </button>
   </div>
-</div>
+</div><!-- /app -->
 
-<!-- =====================================================================
-     COMPARE OVERLAY
-====================================================================== -->
-<div id="compare-overlay" class="hidden">
-  <div class="compare-sheet">
-    <div class="compare-sheet-header">
-      <span class="compare-sheet-title">⚖️ Sammenlign seilbåter</span>
-      <div style="display:flex;gap:8px">
-        <button class="btn-secondary" onclick="clearAllCompare()" style="padding:8px 14px;font-size:13px">
-          Nullstill
-        </button>
-        <button class="btn-icon" onclick="closeCompareOverlay()" title="Lukk">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-    <div class="compare-sheet-body">
-      <div id="compare-table-container">
-        <!-- Table rendered by compare.js -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- =====================================================================
-     ADD BOAT MODAL
-====================================================================== -->
-<div id="modal-add-boat" class="hidden">
+<!-- ===================== ADD WAYPOINT MODAL ===================== -->
+<div class="modal-overlay hidden" id="modal-add-wp">
   <div class="modal-sheet">
-    <div class="modal-title">➕ Legg til båt manuelt</div>
-    <form id="add-boat-form" onsubmit="event.preventDefault(); saveUserBoat()">
-
-      <div class="form-row">
-        <div class="form-field full">
-          <label for="add-boat-name">Båtnavn *</label>
-          <input class="modal-input" id="add-boat-name" type="text" placeholder="f.eks. Vindløs" maxlength="60" required />
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-field">
-          <label for="add-boat-sailno">Seilnummer</label>
-          <input class="modal-input" id="add-boat-sailno" type="text" placeholder="NOR 1234" maxlength="20" />
-        </div>
-        <div class="form-field">
-          <label for="add-boat-class">Klasse</label>
-          <input class="modal-input" id="add-boat-class" type="text" placeholder="f.eks. Dehler 34" maxlength="50" />
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-field">
-          <label for="add-boat-builder">Bygger</label>
-          <input class="modal-input" id="add-boat-builder" type="text" placeholder="f.eks. Dehler" maxlength="50" />
-        </div>
-        <div class="form-field">
-          <label for="add-boat-year">Årsmodell</label>
-          <input class="modal-input" id="add-boat-year" type="number" placeholder="f.eks. 2005" min="1900" max="2030" />
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-field">
-          <label for="add-boat-loa">LOA (m)</label>
-          <input class="modal-input" id="add-boat-loa" type="number" step="0.01" placeholder="10.22" min="3" max="50" />
-        </div>
-        <div class="form-field">
-          <label for="add-boat-beam">Bredde (m)</label>
-          <input class="modal-input" id="add-boat-beam" type="number" step="0.01" placeholder="3.45" min="1" max="15" />
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-field">
-          <label for="add-boat-draft">Dybgang (m)</label>
-          <input class="modal-input" id="add-boat-draft" type="number" step="0.01" placeholder="1.82" min="0.3" max="10" />
-        </div>
-        <div class="form-field">
-          <label for="add-boat-gph">GPH (Norrating)</label>
-          <input class="modal-input" id="add-boat-gph" type="number" step="0.1" placeholder="540.3" min="300" max="900" />
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-field full">
-          <label for="add-boat-notes">Notater</label>
-          <textarea class="modal-textarea" id="add-boat-notes" placeholder="Fri tekst om båten…" maxlength="500"></textarea>
-        </div>
-      </div>
-
-      <div class="modal-buttons">
-        <button type="submit" class="btn-primary" style="flex:1">Lagre båt</button>
-        <button type="button" class="btn-secondary" onclick="closeAddBoatModal()">Avbryt</button>
-      </div>
-    </form>
+    <div class="modal-title">Nytt waypoint</div>
+    <div class="modal-coords" id="modal-coords-text"></div>
+    <input class="modal-input" id="modal-wp-name" type="text" placeholder="Navn (f.eks. Merke 1)" maxlength="30" />
+    <div class="modal-buttons">
+      <button class="btn-secondary" onclick="closeModal()">Avbryt</button>
+      <button class="btn-primary" onclick="confirmAddWaypoint()">Legg til</button>
+    </div>
   </div>
 </div>
 
-<!-- =====================================================================
-     TOAST CONTAINER
-====================================================================== -->
-<div id="toast-container"></div>
+<script>
+/* ==============================================================
+   STATE
+============================================================== */
+let state = {
+  lat: null, lon: null,
+  sog: 0,           // knots
+  cog: 0,           // degrees true
+  heading: null,    // degrees true
+  accuracy: null,
+  gpsOk: false,
+  compassAvailable: false,
+  waypoints: [],
+  activeWpId: null,
+  pendingCoord: null
+};
 
-<!-- =====================================================================
-     SCRIPTS
-====================================================================== -->
-<script type="module" src="js/app.js"></script>
+/* ==============================================================
+   PERSISTENCE
+============================================================== */
+function saveWaypoints() {
+  localStorage.setItem('sailing_waypoints', JSON.stringify(state.waypoints));
+  localStorage.setItem('sailing_active_wp', state.activeWpId || '');
+}
+function loadWaypoints() {
+  try {
+    const d = localStorage.getItem('sailing_waypoints');
+    if (d) state.waypoints = JSON.parse(d);
+    state.activeWpId = localStorage.getItem('sailing_active_wp') || null;
+  } catch(e) {}
+}
 
+/* ==============================================================
+   TABS
+============================================================== */
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'map') {
+    setTimeout(() => { if (window._map) window._map.invalidateSize(); }, 50);
+  }
+  if (name === 'waypoints') renderWaypointList();
+}
+
+/* ==============================================================
+   SAILING MATH
+============================================================== */
+function toRad(d) { return d * Math.PI / 180; }
+function toDeg(r) { return r * 180 / Math.PI; }
+
+function bearing(lat1, lon1, lat2, lon2) {
+  const dLon = toRad(lon2 - lon1);
+  const rlat1 = toRad(lat1), rlat2 = toRad(lat2);
+  const y = Math.sin(dLon) * Math.cos(rlat2);
+  const x = Math.cos(rlat1) * Math.sin(rlat2) -
+             Math.sin(rlat1) * Math.cos(rlat2) * Math.cos(dLon);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+function distanceNM(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+  return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))) / 1852;
+}
+
+function vmg(sogKnots, cogDeg, bearingDeg) {
+  const diff = toRad(bearingDeg - cogDeg);
+  return sogKnots * Math.cos(diff);
+}
+
+function fmtDeg(v)  { return v === null || v === undefined ? '—' : Math.round(v) + '°'; }
+function fmtKnots(v){ return v === null || v === undefined ? '—' : v.toFixed(1) + ' kn'; }
+function fmtDist(nm){
+  if (nm === null || nm === undefined) return '—';
+  return nm < 1 ? Math.round(nm * 1852) + ' m' : nm.toFixed(2) + ' nm';
+}
+
+/* ==============================================================
+   GPS
+============================================================== */
+function initGPS() {
+  if (!('geolocation' in navigator)) {
+    setGpsStatus(false, 'GPS ikke støttet');
+    return;
+  }
+  navigator.geolocation.watchPosition(onGPSUpdate, onGPSError, {
+    enableHighAccuracy: true,
+    maximumAge: 1000,
+    timeout: 10000
+  });
+}
+
+function onGPSUpdate(pos) {
+  const c = pos.coords;
+  state.lat     = c.latitude;
+  state.lon     = c.longitude;
+  state.sog     = Math.max(0, (c.speed || 0) * 1.94384);
+  state.cog     = c.heading || 0;
+  state.accuracy= c.accuracy;
+  state.gpsOk   = true;
+
+  setGpsStatus(true, `±${Math.round(c.accuracy)}m`);
+  updateDashboard();
+  updateMapPosition();
+}
+
+function onGPSError(err) {
+  setGpsStatus(false, 'GPS feil');
+}
+
+function setGpsStatus(ok, text) {
+  document.getElementById('gps-dot').className = 'gps-dot' + (ok ? ' ok' : '');
+  document.getElementById('gps-status-text').textContent = text;
+}
+
+/* ==============================================================
+   COMPASS / DEVICE ORIENTATION
+============================================================== */
+function initCompass() {
+  // iOS 13+ requires permission
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    document.getElementById('compass-banner').classList.remove('hidden');
+  } else {
+    // Android / desktop – just listen
+    document.getElementById('compass-banner').classList.add('hidden');
+    startOrientationListener();
+  }
+}
+
+function requestCompassPermission() {
+  DeviceOrientationEvent.requestPermission().then(status => {
+    if (status === 'granted') {
+      document.getElementById('compass-banner').classList.add('hidden');
+      startOrientationListener();
+    }
+  }).catch(console.error);
+}
+
+function startOrientationListener() {
+  window.addEventListener('deviceorientationabsolute', onOrientation, true);
+  window.addEventListener('deviceorientation', onOrientation, true);
+  state.compassAvailable = true;
+}
+
+function onOrientation(e) {
+  let heading = null;
+  if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
+    heading = e.webkitCompassHeading;               // iOS – true heading
+  } else if (e.absolute && e.alpha !== null) {
+    heading = (360 - e.alpha) % 360;               // Android absolute
+  } else if (e.alpha !== null) {
+    heading = (360 - e.alpha) % 360;               // Fallback
+  }
+  if (heading !== null) {
+    state.heading = heading;
+    updateDashboard();
+  }
+}
+
+/* ==============================================================
+   DASHBOARD UPDATE
+============================================================== */
+function updateDashboard() {
+  // SOG / COG
+  document.getElementById('val-sog').textContent = fmtKnots(state.sog).replace(' kn','');
+  document.getElementById('val-cog').textContent = fmtDeg(state.cog).replace('°','');
+
+  // Heading
+  if (state.heading !== null) {
+    document.getElementById('val-hdg').textContent = Math.round(state.heading) + '';
+    document.getElementById('sub-hdg').textContent = 'kompass';
+  } else {
+    document.getElementById('val-hdg').textContent = '—';
+    document.getElementById('sub-hdg').textContent = 'ikke tilgj.';
+  }
+
+  // Rotate compass needles
+  const cogDeg  = state.cog || 0;
+  const hdgDeg  = state.heading !== null ? state.heading : cogDeg;
+  document.getElementById('needle-cog').setAttribute('transform', `rotate(${cogDeg}, 55, 55)`);
+  document.getElementById('needle-hdg').setAttribute('transform', `rotate(${hdgDeg}, 55, 55)`);
+
+  // Active waypoint
+  const wp = state.waypoints.find(w => w.id === state.activeWpId);
+  if (wp && state.lat !== null) {
+    const brg = bearing(state.lat, state.lon, wp.lat, wp.lon);
+    const dtw = distanceNM(state.lat, state.lon, wp.lat, wp.lon);
+    const vmgVal = vmg(state.sog, state.cog, brg);
+
+    document.getElementById('val-vmg').textContent = vmgVal.toFixed(1);
+    document.getElementById('val-brg').textContent = Math.round(brg) + '';
+    document.getElementById('val-dtw').textContent = fmtDist(dtw);
+    document.getElementById('wp-instruments').style.display = '';
+    document.getElementById('wp-info-label').innerHTML =
+      `<div class="wp-label">🏁 ${wp.name}</div>`;
+
+    // Bearing marker on compass
+    document.getElementById('bearing-marker').style.display = '';
+    document.getElementById('bearing-marker').setAttribute('transform', `rotate(${brg}, 55, 55)`);
+    document.getElementById('bearing-legend').style.display = '';
+
+  } else {
+    document.getElementById('val-vmg').textContent = '—';
+    document.getElementById('val-brg').textContent = '—';
+    document.getElementById('val-dtw').textContent = '—';
+    document.getElementById('wp-instruments').style.display = 'none';
+    document.getElementById('wp-info-label').innerHTML =
+      `<div class="wp-label" style="color:var(--muted)">🏳 Ingen aktiv waypoint</div>`;
+    document.getElementById('bearing-marker').style.display = 'none';
+    document.getElementById('bearing-legend').style.display = 'none';
+  }
+
+  // GPS accuracy
+  if (state.accuracy !== null) {
+    document.getElementById('gps-accuracy').textContent = `GPS nøyaktighet: ±${Math.round(state.accuracy)} m`;
+  }
+}
+
+/* ==============================================================
+   MAP (Leaflet)
+============================================================== */
+let _map, _userMarker, _userCircle, _waypointMarkers = {}, _bearingLine = null;
+
+function initMap() {
+  _map = L.map('map', {
+    center: [59.9, 10.7],
+    zoom: 12,
+    zoomControl: false
+  });
+  window._map = _map;
+
+  // OpenStreetMap tiles (works offline-ish via cache)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 18
+  }).addTo(_map);
+
+  // Long-press to add waypoint
+  let pressTimer = null;
+  _map.on('mousedown touchstart', e => {
+    const latlng = e.latlng || (e.touches && _map.containerPointToLatLng(
+      L.point(e.touches[0].clientX - _map.getContainer().getBoundingClientRect().left,
+              e.touches[0].clientY - _map.getContainer().getBoundingClientRect().top)));
+    if (!latlng) return;
+    pressTimer = setTimeout(() => openAddModal(latlng.lat, latlng.lng), 600);
+  });
+  _map.on('mouseup touchend touchcancel mousemove', () => {
+    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+  });
+
+  // Render existing waypoints
+  state.waypoints.forEach(addWaypointMarker);
+}
+
+function updateMapPosition() {
+  if (state.lat === null || !_map) return;
+  const latlng = [state.lat, state.lon];
+
+  if (!_userMarker) {
+    _userMarker = L.circleMarker(latlng, {
+      radius: 7, color: '#00d4ff', fillColor: '#00d4ff', fillOpacity: 1, weight: 2
+    }).addTo(_map);
+    _userCircle = L.circle(latlng, { radius: state.accuracy || 20,
+      color: '#00d4ff', fillColor: '#00d4ff', fillOpacity: .1, weight: 1 }).addTo(_map);
+    _map.setView(latlng, 14);
+  } else {
+    _userMarker.setLatLng(latlng);
+    _userCircle.setLatLng(latlng);
+    if (state.accuracy) _userCircle.setRadius(state.accuracy);
+  }
+
+  drawBearingLine();
+}
+
+function drawBearingLine() {
+  if (_bearingLine) { _map.removeLayer(_bearingLine); _bearingLine = null; }
+  const wp = state.waypoints.find(w => w.id === state.activeWpId);
+  if (wp && state.lat !== null) {
+    _bearingLine = L.polyline([[state.lat, state.lon],[wp.lat, wp.lon]], {
+      color: '#ffd700', weight: 2, dashArray: '6 4', opacity: .8
+    }).addTo(_map);
+  }
+}
+
+function centerOnUser() {
+  if (state.lat !== null && _map) _map.setView([state.lat, state.lon], 14);
+}
+
+/* Custom waypoint icon */
+function wpIcon(active) {
+  const color = active ? '#ffd700' : '#ff5252';
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:24px;height:32px;position:relative">
+      <svg viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0C5.37 0 0 5.37 0 12c0 9 12 20 12 20S24 21 24 12C24 5.37 18.63 0 12 0z" fill="${color}"/>
+        <circle cx="12" cy="12" r="5" fill="white" opacity="0.9"/>
+      </svg></div>`,
+    iconSize: [24, 32],
+    iconAnchor: [12, 32],
+    popupAnchor: [0, -32]
+  });
+}
+
+function addWaypointMarker(wp) {
+  if (!_map) return;
+  const active = wp.id === state.activeWpId;
+  const marker = L.marker([wp.lat, wp.lon], { icon: wpIcon(active) }).addTo(_map);
+  marker.bindPopup(`
+    <b>${wp.name}</b><br>
+    <span style="font-size:11px;color:#999">${wp.lat.toFixed(4)}°N, ${wp.lon.toFixed(4)}°Ø</span><br>
+    <button onclick="toggleActive('${wp.id}')" style="margin-top:6px;padding:4px 10px;
+      background:${active ? '#ffd700' : '#0af'};color:#000;border:none;border-radius:6px;
+      font-weight:700;font-size:12px;cursor:pointer">${active ? 'Deaktiver' : 'Velg som mål'}</button>
+  `, { maxWidth: 200 });
+  _waypointMarkers[wp.id] = marker;
+}
+
+function refreshWaypointMarkers() {
+  Object.values(_waypointMarkers).forEach(m => { if (_map) _map.removeLayer(m); });
+  _waypointMarkers = {};
+  state.waypoints.forEach(addWaypointMarker);
+  drawBearingLine();
+}
+
+/* ==============================================================
+   MODAL – Add waypoint
+============================================================== */
+function openAddModal(lat, lon) {
+  state.pendingCoord = { lat, lon };
+  document.getElementById('modal-coords-text').textContent =
+    `${lat.toFixed(5)}°N, ${lon.toFixed(5)}°Ø`;
+  document.getElementById('modal-wp-name').value = '';
+  document.getElementById('modal-add-wp').classList.remove('hidden');
+  setTimeout(() => document.getElementById('modal-wp-name').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modal-add-wp').classList.add('hidden');
+  state.pendingCoord = null;
+}
+
+function confirmAddWaypoint() {
+  if (!state.pendingCoord) return;
+  const name = document.getElementById('modal-wp-name').value.trim() || 'Waypoint';
+  const wp = {
+    id: crypto.randomUUID(),
+    name,
+    lat: state.pendingCoord.lat,
+    lon: state.pendingCoord.lon
+  };
+  state.waypoints.push(wp);
+  saveWaypoints();
+  addWaypointMarker(wp);
+  renderWaypointList();
+  closeModal();
+}
+
+// Close modal on overlay click
+document.getElementById('modal-add-wp').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// Enter key confirms
+document.getElementById('modal-wp-name').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmAddWaypoint();
+});
+
+/* ==============================================================
+   WAYPOINT INTERACTIONS
+============================================================== */
+function toggleActive(id) {
+  state.activeWpId = state.activeWpId === id ? null : id;
+  saveWaypoints();
+  // Close all popups
+  Object.values(_waypointMarkers).forEach(m => m.closePopup());
+  refreshWaypointMarkers();
+  updateDashboard();
+  renderWaypointList();
+}
+
+function deleteWaypoint(id) {
+  state.waypoints = state.waypoints.filter(w => w.id !== id);
+  if (state.activeWpId === id) state.activeWpId = null;
+  saveWaypoints();
+  refreshWaypointMarkers();
+  updateDashboard();
+  renderWaypointList();
+}
+
+/* ==============================================================
+   WAYPOINT LIST RENDER
+============================================================== */
+function renderWaypointList() {
+  const container = document.getElementById('wp-list-container');
+  if (state.waypoints.length === 0) {
+    container.innerHTML = '<div class="empty-state">Ingen waypoints ennå.<br>Hold inne på kartet for å legge til.</div>';
+    return;
+  }
+  container.innerHTML = '<div class="wp-list">' +
+    state.waypoints.map(wp => {
+      const active = wp.id === state.activeWpId;
+      return `<div class="wp-card ${active ? 'active-wp' : ''}">
+        <div class="wp-icon">${active ? '🏁' : '📍'}</div>
+        <div class="wp-details">
+          <div class="wp-name">${wp.name}</div>
+          <div class="wp-coords">${wp.lat.toFixed(4)}°N, ${wp.lon.toFixed(4)}°Ø</div>
+        </div>
+        <div class="wp-actions">
+          <button class="btn-small btn-select ${active ? 'selected' : ''}"
+            onclick="toggleActive('${wp.id}')">${active ? '★ Aktiv' : 'Velg'}</button>
+          <button class="btn-small btn-delete"
+            onclick="deleteWaypoint('${wp.id}')">Slett</button>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+}
+
+/* ==============================================================
+   INIT
+============================================================== */
+loadWaypoints();
+initGPS();
+initCompass();
+initMap();
+updateDashboard();
+</script>
 </body>
 </html>
