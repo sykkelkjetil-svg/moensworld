@@ -11,3 +11,14 @@
   to     = "/.netlify/functions/frost"
   status = 200
   force  = true
+
+# SPA-routing for React-apper (sender alle understi-er til index.html)
+[[redirects]]
+  from   = "/seiling/*"
+  to     = "/seiling/index.html"
+  status = 200
+
+[[redirects]]
+  from   = "/kystvaer/*"
+  to     = "/kystvaer/index.html"
+  status = 200
