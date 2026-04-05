@@ -16,15 +16,48 @@
       position:absolute; top:20px; left:20px; z-index:1000;
       background:rgba(8,8,20,0.9); backdrop-filter:blur(16px);
       border:1px solid rgba(255,255,255,0.08); border-radius:18px;
-      padding:18px 20px; width:255px;
+      padding:14px 16px; width:255px;
       box-shadow:0 12px 40px rgba(0,0,0,0.6);
       max-height:calc(100vh - 40px); overflow-y:auto;
+      transition: width 0.25s ease, padding 0.25s ease;
     }
     #panel::-webkit-scrollbar { width:3px; }
     #panel::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:3px; }
 
-    #panel h1 { font-size:15px; font-weight:700; letter-spacing:-0.3px; }
-    .subtitle { font-size:10px; color:rgba(255,255,255,0.35); margin-top:2px; margin-bottom:14px; }
+    /* Minimert panel */
+    #panel.minimized {
+      width:48px; padding:12px;
+      overflow:hidden;
+    }
+    #panel.minimized #panel-body { display:none; }
+
+    /* Header-rad med tittel og minimér-knapp */
+    #panel-header {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:12px;
+    }
+    #panel.minimized #panel-header { margin-bottom:0; }
+
+    #panel-title-wrap { display:flex; flex-direction:column; }
+    #panel h1 { font-size:15px; font-weight:700; letter-spacing:-0.3px; line-height:1; }
+    .subtitle { font-size:10px; color:rgba(255,255,255,0.35); margin-top:3px; }
+    #panel.minimized #panel-title-wrap { display:none; }
+
+    /* Minimér-knapp */
+    #toggle-btn {
+      width:28px; height:28px; border-radius:8px; flex-shrink:0;
+      background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1);
+      color:rgba(255,255,255,0.5); cursor:pointer; font-size:14px;
+      display:flex; align-items:center; justify-content:center;
+      transition:background 0.15s, color 0.15s;
+    }
+    #toggle-btn:hover { background:rgba(255,255,255,0.15); color:#fff; }
+
+    /* Aktiv-indikator i minimert modus (viser hvilken param som er valgt) */
+    #mini-indicator {
+      display:none; font-size:18px; text-align:center; margin-top:10px;
+    }
+    #panel.minimized #mini-indicator { display:block; }
 
     /* Param buttons */
     .param-btn {
@@ -151,9 +184,16 @@
 <div id="map"></div>
 
 <div id="panel">
-  <h1>⛅ Norsk Vær Live</h1>
-  <div class="subtitle">Frost API · Meteorologisk institutt</div>
+  <div id="panel-header">
+    <div id="panel-title-wrap">
+      <h1>⛅ Norsk Vær Live</h1>
+      <div class="subtitle">Frost API · Meteorologisk institutt</div>
+    </div>
+    <button id="toggle-btn" onclick="togglePanel()" title="Minimer/vis meny">‹</button>
+  </div>
+  <div id="mini-indicator">🌡️</div>
 
+  <div id="panel-body">
   <button class="param-btn active-temp" id="btn-temp"      onclick="setParam('temp')">🌡️ Temperatur</button>
   <button class="param-btn"             id="btn-wind"      onclick="setParam('wind')">💨 Vindstyrke</button>
   <button class="param-btn"             id="btn-precip"    onclick="setParam('precip')">🌧️ Nedbør</button>
@@ -219,6 +259,7 @@
     <span id="station-count">Laster…</span>
     <button id="refresh-btn" title="Oppdater" onclick="refreshLive()">↺</button>
   </div>
+  </div><!-- /panel-body -->
 </div>
 
 <div id="status"></div>
@@ -345,6 +386,7 @@ function fmtDate(d) { return d.toISOString().slice(0,19); }
 function setParam(p) {
   stopAnimWeather(); stopLightning();
   currentParam = p;
+  document.getElementById('mini-indicator').textContent = PARAM_ICONS[p] || '⛅';
 
   ['temp','wind','precip','humid','lightning'].forEach(k => {
     document.getElementById('btn-'+k).className = 'param-btn' + (k===p?' active-'+k:'');
@@ -846,6 +888,20 @@ function drawStrike({lat,lon,amp}) {
 function updateLnSpeedLabel() {
   const labels=['¼×','½×','1×','2×','4×'];
   document.getElementById('speed-label').textContent=labels[parseInt(document.getElementById('speed-slider').value)-1];
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PANEL MINIMERING
+// ═══════════════════════════════════════════════════════════════
+const PARAM_ICONS = { temp:'🌡️', wind:'💨', precip:'🌧️', humid:'💧', lightning:'⚡' };
+
+function togglePanel() {
+  const panel = document.getElementById('panel');
+  const btn   = document.getElementById('toggle-btn');
+  const mini  = document.getElementById('mini-indicator');
+  const isMin = panel.classList.toggle('minimized');
+  btn.textContent  = isMin ? '›' : '‹';
+  mini.textContent = PARAM_ICONS[currentParam] || '⛅';
 }
 
 // ═══════════════════════════════════════════════════════════════
