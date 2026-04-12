@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klesstørrelse</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d0f14;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+    }
+
+    #app {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+
+    .step { display: none; }
+    .step.active { display: block; }
+
+    .card {
+      background: #161b25;
+      border: 1px solid #2d3748;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .card p.hint {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    /* Height input */
+    .height-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    input[type="number"] {
+      background: #0d0f14;
+      border: 1.5px solid #4a5568;
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-size: 1.6rem;
+      font-weight: 700;
+      padding: 12px 16px;
+      width: 140px;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="number"]:focus { border-color: #60a5fa; }
+    .unit-label {
+      font-size: 1.2rem;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+
+    /* Buttons */
+    .btn {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 12px 28px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-sec {
+      background: #252d3d;
+      border: 1px solid #374151;
+      color: #cbd5e1;
+    }
+    .btn-sec:hover { background: #2d3748; }
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Upload */
+    .upload-area {
+      border: 2px dashed #4a5568;
+      border-radius: 12px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 16px;
+      user-select: none;
+    }
+    .upload-area:hover, .upload-area.dragover {
+      border-color: #60a5fa;
+      background: #1a2035;
+    }
+    .upload-icon { font-size: 2.8rem; margin-bottom: 10px; }
+    .upload-area strong { font-size: 1rem; color: #e2e8f0; }
+    .upload-area p { color: #94a3b8; font-size: 0.82rem; margin-top: 6px; }
+    #fileInput { display: none; }
+
+    #preview {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 10px;
+      display: none;
+      margin: 0 auto 14px;
+      border: 1px solid #2d3748;
+    }
+
+    .tips-list { list-style: none; margin-top: 14px; }
+    .tips-list li {
+      color: #94a3b8;
+      font-size: 0.83rem;
+      padding: 3px 0 3px 20px;
+      position: relative;
+      line-height: 1.5;
+    }
+    .tips-list li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: #60a5fa;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 48px 20px;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #2d3748;
+      border-top-color: #60a5fa;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { color: #94a3b8; font-size: 0.9rem; }
+
+    /* Canvas */
+    #canvas {
+      max-width: 100%;
+      border-radius: 12px;
+      display: block;
+      margin: 0 auto 20px;
+      border: 1px solid #2d3748;
+    }
+
+    /* Measurements grid */
+    .meas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .meas-item {
+      background: #0d0f14;
+      border: 1px solid #2d3748;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .meas-label {
+      font-size: 0.72rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 5px;
+    }
+    .meas-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #60a5fa;
+    }
+    .meas-unit {
+      font-size: 0.72rem;
+      color: #475569;
+      margin-left: 2px;
+    }
+    .meas-est { color: #a78bfa; }
+
+    /* Size grid */
+    .size-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .size-item {
+      background: #0d0f14;
+      border: 1px solid #2d3748;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .size-cat {
+      font-size: 0.75rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .size-badge {
+      font-size: 1.9rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .size-detail {
+      font-size: 0.78rem;
+      color: #475569;
+      line-height: 1.4;
+    }
+
+    /* Warning */
+    .warning {
+      background: #1c1a0a;
+      border: 1px solid #f59e0b55;
+      border-radius: 10px;
+      color: #fbbf24;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      padding: 12px 14px;
+      margin-top: 16px;
+    }
+
+    /* Error */
+    .error-box {
+      background: #1a0a0a;
+      border: 1px solid #ef444455;
+      border-radius: 10px;
+      color: #f87171;
+      padding: 16px;
+      text-align: center;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    /* Divider */
+    .section-label {
+      font-size: 0.75rem;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .header h1 { font-size: 1.6rem; }
+      .meas-grid { grid-template-columns: repeat(3, 1fr); }
+      .size-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <h1>👕 Klesstørrelse</h1>
+    <p>Estimer kroppsmål og klesstørrelser fra bilde</p>
+  </div>
+
+  <!-- Step 1: Height -->
+  <div id="step1" class="step active">
+    <div class="card">
+      <h2>📏 Oppgi din høyde</h2>
+      <p class="hint">Høyden brukes som referansepunkt for å beregne alle lengde- og breddmål.</p>
+      <div class="height-row">
+        <input type="number" id="heightInput" value="175" min="100" max="220">
+        <span class="unit-label">cm</span>
+      </div>
+      <button class="btn" onclick="goToStep2()">Fortsett →</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Photo upload -->
+  <div id="step2" class="step">
+    <div class="card">
+      <h2>📸 Last opp bilde</h2>
+      <p class="hint">Last opp et bilde av deg selv forfra i helfigur for best mulig analyse.</p>
+
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📷</div>
+        <strong>Klikk for å velge bilde</strong>
+        <p>Støtter JPEG og PNG — eller dra og slipp hit</p>
+        <p style="color:#60a5fa; margin-top:8px; font-size:0.8rem;">
+          På mobil: ta bilde med kamera direkte
+        </p>
+      </div>
+      <input type="file" id="fileInput" accept="image/*">
+
+      <img id="preview" alt="Forhåndsvisning">
+
+      <p class="section-label">Tips for godt resultat</p>
+      <ul class="tips-list">
+        <li>Stå rett opp og ned, forfra mot kamera</li>
+        <li>Armene litt ut fra kroppen (ca. 15–20 cm)</li>
+        <li>Hele kroppen synlig — hode til føtter</li>
+        <li>Tett- eller trettsittende klær anbefales</li>
+        <li>God, jevn belysning uten sterke skygger</li>
+      </ul>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-sec" onclick="goToStep1()">← Endre høyde</button>
+      <button class="btn" id="analyzeBtn" onclick="analyzePhoto()" disabled>Analyser →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Loading -->
+  <div id="step3" class="step">
+    <div class="card loading">
+      <div class="spinner"></div>
+      <p id="loadingText">Laster AI-modell...</p>
+    </div>
+  </div>
+
+  <!-- Step 4: Results -->
+  <div id="step4" class="step">
+    <div class="card" id="canvasCard">
+      <h2>🎯 Kroppsmål (estimert)</h2>
+      <p class="hint">Beregnet ut fra din oppgitte høyde og posisjonen til kroppspunktene i bildet.</p>
+      <canvas id="canvas"></canvas>
+
+      <p class="section-label">Lengde- og breddmål</p>
+      <div class="meas-grid" id="measGrid"></div>
+
+      <p class="section-label" style="margin-top:14px;">Estimerte omkretsmål</p>
+      <div class="meas-grid" id="circGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>👕 Anbefalte størrelser</h2>
+      <p class="hint">Basert på estimerte mål. Størrelser varierer mellom merker — bruk som veiledning.</p>
+      <div class="size-grid" id="sizeGrid"></div>
+      <div class="warning">
+        ⚠️ Estimatene er beregnet fra et 2D-frontbilde med oppgitt høyde som eneste referanse.
+        Omkretsestimater er usikre fordi dybde (bryst-/hoftetykkelse) ikke kan måles direkte.
+        Bekreft alltid med målebånd ved kjøp.
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-sec" onclick="goToStep2()">← Nytt bilde</button>
+      <button class="btn btn-sec" onclick="goToStep1()">← Ny høyde</button>
+    </div>
+
+    <div id="errorBox" style="display:none; margin-top:16px;"></div>
+  </div>
+</div>
+
+<script>
+  let userHeight = 175;
+  let selectedFile = null;
+  let poseInstance = null;
+
+  // ── Navigation ───────────────────────────────────────────────────────────────
+
+  function showStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step' + n).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function goToStep1() { showStep(1); }
+
+  function goToStep2() {
+    const h = parseInt(document.getElementById('heightInput').value);
+    if (!h || h < 100 || h > 220) {
+      alert('Oppgi en gyldig høyde mellom 100 og 220 cm.');
+      return;
+    }
+    userHeight = h;
+    showStep(2);
+  }
+
+  // ── File handling ────────────────────────────────────────────────────────────
+
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput  = document.getElementById('fileInput');
+  const preview    = document.getElementById('preview');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
+  });
+
+  uploadArea.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+  });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  function handleFile(file) {
+    selectedFile = file;
+    const url = URL.createObjectURL(file);
+    preview.src = url;
+    preview.style.display = 'block';
+    analyzeBtn.disabled = false;
+  }
+
+  // ── Analysis ─────────────────────────────────────────────────────────────────
+
+  async function analyzePhoto() {
+    if (!selectedFile) return;
+    showStep(3);
+    setLoading('Laster AI-modell...');
+
+    try {
+      const img = await loadImage(selectedFile);
+      await runPose(img);
+    } catch (err) {
+      console.error(err);
+      showStep(4);
+      const box = document.getElementById('errorBox');
+      box.style.display = 'block';
+      box.innerHTML = `<div class="error-box">
+        ❌ Kunne ikke analysere bildet: <strong>${err.message}</strong><br>
+        Prøv et annet bilde — hel kropp forfra med god belysning.
+      </div>`;
+    }
+  }
+
+  function loadImage(file) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  async function runPose(img) {
+    if (!poseInstance) {
+      poseInstance = new Pose({
+        locateFile: f =>
+          `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}`
+      });
+      poseInstance.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: false,
+        enableSegmentation: false,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+      });
+    }
+
+    return new Promise((resolve, reject) => {
+      poseInstance.onResults(results => {
+        try {
+          setLoading('Beregner mål...');
+          if (!results.poseLandmarks || results.poseLandmarks.length < 28) {
+            throw new Error('Ingen person funnet — sørg for at hele kroppen er synlig');
+          }
+          drawAndCompute(results, img);
+          resolve();
+        } catch (e) {
+          reject(e);
+        }
+      });
+
+      setLoading('Analyserer kropp...');
+      poseInstance.send({ image: img }).catch(reject);
+    });
+  }
+
+  function setLoading(text) {
+    document.getElementById('loadingText').textContent = text;
+  }
+
+  // ── Draw & compute ───────────────────────────────────────────────────────────
+
+  function drawAndCompute(results, img) {
+    const lm = results.poseLandmarks;
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const maxW = Math.min(img.width, 560);
+    const ratio = maxW / img.width;
+    canvas.width  = maxW;
+    canvas.height = img.height * ratio;
+
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    drawSkeleton(ctx, lm, canvas.width, canvas.height);
+
+    const m = computeMeasurements(lm, userHeight);
+    if (!m) throw new Error('Klarte ikke beregne mål fra bildet');
+
+    drawAnnotations(ctx, lm, canvas.width, canvas.height, m);
+
+    document.getElementById('errorBox').style.display = 'none';
+    renderMeasurements(m);
+    renderSizes(m);
+    showStep(4);
+  }
+
+  function vis(lm, i) {
+    return (lm[i].visibility ?? 1) > 0.3;
+  }
+
+  function drawSkeleton(ctx, lm, w, h) {
+    const BONES = [
+      [11, 12], // skulder-skulder
+      [11, 13], [13, 15], // venstre arm
+      [12, 14], [14, 16], // høyre arm
+      [11, 23], [12, 24], // torso sider
+      [23, 24],            // hofte-hofte
+      [23, 25], [25, 27],  // venstre bein
+      [24, 26], [26, 28],  // høyre bein
+    ];
+
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#22d3ee99';
+    BONES.forEach(([a, b]) => {
+      if (vis(lm, a) && vis(lm, b)) {
+        ctx.beginPath();
+        ctx.moveTo(lm[a].x * w, lm[a].y * h);
+        ctx.lineTo(lm[b].x * w, lm[b].y * h);
+        ctx.stroke();
+      }
+    });
+
+    [11,12,13,14,15,16,23,24,25,26,27,28].forEach(i => {
+      if (vis(lm, i)) {
+        ctx.fillStyle = '#60a5fa';
+        ctx.beginPath();
+        ctx.arc(lm[i].x * w, lm[i].y * h, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+  }
+
+  function drawAnnotations(ctx, lm, w, h, m) {
+    ctx.setLineDash([5, 4]);
+    ctx.lineWidth = 1.5;
+    ctx.font = 'bold 11px system-ui, sans-serif';
+
+    // Skulderbredde
+    const ls = lm[11], rs = lm[12];
+    const syOff = Math.min(ls.y, rs.y) * h - 14;
+    ctx.strokeStyle = '#fbbf24bb';
+    ctx.fillStyle   = '#fbbf24';
+    ctx.beginPath();
+    ctx.moveTo(ls.x * w, syOff);
+    ctx.lineTo(rs.x * w, syOff);
+    ctx.stroke();
+    ctx.fillText(m.shoulderWidth + ' cm', ((ls.x + rs.x) / 2 * w) - 22, syOff - 4);
+
+    // Hoftebredde
+    const lh = lm[23], rh = lm[24];
+    const hyOff = Math.max(lh.y, rh.y) * h + 18;
+    ctx.strokeStyle = '#a78bfabb';
+    ctx.fillStyle   = '#a78bfa';
+    ctx.beginPath();
+    ctx.moveTo(lh.x * w, hyOff);
+    ctx.lineTo(rh.x * w, hyOff);
+    ctx.stroke();
+    ctx.fillText(m.hipWidth + ' cm', ((lh.x + rh.x) / 2 * w) - 20, hyOff + 12);
+
+    ctx.setLineDash([]);
+  }
+
+  // ── Measurements ─────────────────────────────────────────────────────────────
+
+  function computeMeasurements(lm, heightCm) {
+    const nose = lm[0];
+    const lSh = lm[11], rSh = lm[12];
+    const lHip = lm[23], rHip = lm[24];
+    const lWr = lm[15], rWr = lm[16];
+    const lAnk = lm[27], rAnk = lm[28];
+
+    // Topp av hode: nesen er ca. 87% ned fra toppen av hodet relativt til kroppen.
+    // Vi estimerer hode-topp ved å gå like langt over nesen som avstanden nese→skulder×0.65
+    const noseToShoulderY = Math.abs((lSh.y + rSh.y) / 2 - nose.y);
+    const headTopY = nose.y - noseToShoulderY * 0.65;
+
+    const ankleY = (lAnk.y + rAnk.y) / 2;
+    const bodyNorm = ankleY - headTopY;
+
+    if (bodyNorm <= 0.05) return null;
+
+    // cm per normalized unit
+    const S = heightCm / bodyNorm;
+
+    const dX  = (a, b) => Math.abs(a.x - b.x);
+    const dY  = (a, b) => Math.abs(a.y - b.y);
+    const d2  = (a, b) => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+
+    const shoulderWidth = Math.round(dX(lSh, rSh) * S);
+    const hipWidth      = Math.round(dX(lHip, rHip) * S);
+
+    const shMidY  = (lSh.y + rSh.y) / 2;
+    const hipMidY = (lHip.y + rHip.y) / 2;
+    const torso   = Math.round((hipMidY - shMidY) * S);
+
+    // Bruk arm med høyest synlighet
+    const lArmVis = Math.min(lWr.visibility ?? 1, lSh.visibility ?? 1);
+    const rArmVis = Math.min(rWr.visibility ?? 1, rSh.visibility ?? 1);
+    const armSh   = lArmVis >= rArmVis ? lSh : rSh;
+    const armWr   = lArmVis >= rArmVis ? lWr : rWr;
+    const armLen  = Math.round(d2(armSh, armWr) * S);
+
+    const legLen = Math.round((ankleY - hipMidY) * S);
+    const inseam = Math.round(legLen * 0.92);
+
+    // Omkrets — empiriske faktorer for frontbilde
+    // Skulderbredde (front) ≈ 48% av brystomkrets for gjennomsnittskropp
+    const bryst = Math.round(shoulderWidth * 2.08);
+    // Hoftebredde (front) ≈ 41% av hofteomkrets
+    const hofte = Math.round(hipWidth * 2.45);
+    // Midje er smalere enn hofte; estimerer fra hoftebredde
+    const midje = Math.round(hipWidth * 1.80);
+
+    return {
+      shoulderWidth, hipWidth, torso,
+      armLen, legLen, inseam,
+      bryst, midje, hofte
+    };
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+
+  function renderMeasurements(m) {
+    const linear = [
+      { label: 'Skulder',    value: m.shoulderWidth },
+      { label: 'Hofte',      value: m.hipWidth      },
+      { label: 'Torso',      value: m.torso         },
+      { label: 'Arm',        value: m.armLen        },
+      { label: 'Bein',       value: m.legLen        },
+      { label: 'Innsøm',     value: m.inseam        },
+    ];
+    const circ = [
+      { label: 'Bryst (est.)', value: m.bryst },
+      { label: 'Midje (est.)', value: m.midje },
+      { label: 'Hofte (est.)', value: m.hofte },
+    ];
+
+    document.getElementById('measGrid').innerHTML = linear.map(i => `
+      <div class="meas-item">
+        <div class="meas-label">${i.label}</div>
+        <div class="meas-value">${i.value}<span class="meas-unit">cm</span></div>
+      </div>`).join('');
+
+    document.getElementById('circGrid').innerHTML = circ.map(i => `
+      <div class="meas-item">
+        <div class="meas-label">${i.label}</div>
+        <div class="meas-value meas-est">${i.value}<span class="meas-unit">cm</span></div>
+      </div>`).join('');
+  }
+
+  function topSize(c) {
+    if (c < 84)  return 'XS';
+    if (c < 92)  return 'S';
+    if (c < 100) return 'M';
+    if (c < 108) return 'L';
+    if (c < 116) return 'XL';
+    return 'XXL';
+  }
+
+  function jacketEU(c) {
+    if (c < 84)  return '44';
+    if (c < 88)  return '46';
+    if (c < 92)  return '48';
+    if (c < 96)  return '50';
+    if (c < 100) return '52';
+    if (c < 104) return '54';
+    if (c < 108) return '56';
+    return '58';
+  }
+
+  function pantsIntl(waistCm, inseam) {
+    const w = Math.round(waistCm / 2.54);
+    const l = Math.round(inseam / 2.54);
+    return `W${w} / L${l}`;
+  }
+
+  function pantsEU(waistCm) {
+    if (waistCm < 72) return '28';
+    if (waistCm < 76) return '30';
+    if (waistCm < 80) return '32';
+    if (waistCm < 84) return '34';
+    if (waistCm < 88) return '36';
+    if (waistCm < 92) return '38';
+    if (waistCm < 96) return '40';
+    return '42';
+  }
+
+  function armCat(cm) {
+    if (cm < 60) return 'Kort';
+    if (cm < 68) return 'Normal';
+    return 'Lang';
+  }
+
+  function renderSizes(m) {
+    const sizes = [
+      {
+        cat:    'T-skjorte / Genser',
+        size:   topSize(m.bryst),
+        detail: `Bryst ~${m.bryst} cm`
+      },
+      {
+        cat:    'Jakke / Dress (EU)',
+        size:   jacketEU(m.bryst),
+        detail: `Brystomkrets ~${m.bryst} cm`
+      },
+      {
+        cat:    'Bukse (internasjonal)',
+        size:   pantsIntl(m.midje, m.inseam),
+        detail: `Midje ~${m.midje} cm · innsøm ~${m.inseam} cm`
+      },
+      {
+        cat:    'Bukse (EU)',
+        size:   pantsEU(m.midje),
+        detail: `Midje ~${m.midje} cm`
+      },
+      {
+        cat:    'Skulderbredde',
+        size:   m.shoulderWidth + ' cm',
+        detail: 'Relevant for jakker og skjorter'
+      },
+      {
+        cat:    'Armlengde',
+        size:   armCat(m.armLen),
+        detail: `~${m.armLen} cm (skulder → håndledd)`
+      },
+    ];
+
+    document.getElementById('sizeGrid').innerHTML = sizes.map(s => `
+      <div class="size-item">
+        <div class="size-cat">${s.cat}</div>
+        <div class="size-badge">${s.size}</div>
+        <div class="size-detail">${s.detail}</div>
+      </div>`).join('');
+  }
+</script>
+</body>
+</html>
