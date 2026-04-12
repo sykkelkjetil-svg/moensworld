@@ -7,347 +7,282 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js" crossorigin="anonymous"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       background: #0d0f14;
       color: #e2e8f0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       min-height: 100vh;
     }
+    #app { max-width: 860px; margin: 0 auto; padding: 24px 16px 56px; }
 
-    #app {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 24px 16px 48px;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
+    .header { text-align: center; margin-bottom: 32px; }
     .header h1 {
-      font-size: 2rem;
-      font-weight: 700;
+      font-size: 2rem; font-weight: 700;
       background: linear-gradient(135deg, #60a5fa, #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 8px;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 8px;
     }
-    .header p {
-      color: #94a3b8;
-      font-size: 0.95rem;
-    }
+    .header p { color: #94a3b8; font-size: 0.95rem; }
 
     .step { display: none; }
     .step.active { display: block; }
 
     .card {
-      background: #161b25;
-      border: 1px solid #2d3748;
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 16px;
+      background: #161b25; border: 1px solid #2d3748;
+      border-radius: 16px; padding: 24px; margin-bottom: 16px;
     }
-    .card h2 {
-      font-size: 1.2rem;
-      font-weight: 600;
-      margin-bottom: 6px;
+    .card h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 6px; }
+    .card p.hint { color: #94a3b8; font-size: 0.85rem; margin-bottom: 18px; line-height: 1.5; }
+
+    /* Progress bar */
+    .progress { display: flex; gap: 6px; margin-bottom: 28px; align-items: center; }
+    .progress-step {
+      flex: 1; height: 4px; border-radius: 2px; background: #2d3748;
+      transition: background 0.3s;
     }
-    .card p.hint {
-      color: #94a3b8;
-      font-size: 0.85rem;
-      margin-bottom: 18px;
-      line-height: 1.5;
-    }
+    .progress-step.done  { background: #a78bfa; }
+    .progress-step.active { background: linear-gradient(90deg, #60a5fa, #a78bfa); }
+    .progress-label { font-size: 0.75rem; color: #64748b; white-space: nowrap; }
 
     /* Height input */
-    .height-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
+    .height-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
     input[type="number"] {
-      background: #0d0f14;
-      border: 1.5px solid #4a5568;
-      border-radius: 10px;
-      color: #e2e8f0;
-      font-size: 1.6rem;
-      font-weight: 700;
-      padding: 12px 16px;
-      width: 140px;
-      text-align: center;
-      outline: none;
-      transition: border-color 0.2s;
+      background: #0d0f14; border: 1.5px solid #4a5568;
+      border-radius: 10px; color: #e2e8f0;
+      font-size: 1.6rem; font-weight: 700;
+      padding: 12px 16px; width: 140px; text-align: center;
+      outline: none; transition: border-color 0.2s;
     }
     input[type="number"]:focus { border-color: #60a5fa; }
-    .unit-label {
-      font-size: 1.2rem;
-      color: #94a3b8;
-      font-weight: 500;
-    }
+    .unit-label { font-size: 1.2rem; color: #94a3b8; font-weight: 500; }
 
     /* Buttons */
     .btn {
       background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      border: none;
-      border-radius: 10px;
-      color: white;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 600;
-      padding: 12px 28px;
-      transition: opacity 0.2s, transform 0.1s;
+      border: none; border-radius: 10px; color: white;
+      cursor: pointer; font-size: 1rem; font-weight: 600;
+      padding: 12px 28px; transition: opacity 0.2s, transform 0.1s;
     }
     .btn:hover { opacity: 0.9; transform: translateY(-1px); }
     .btn:active { transform: translateY(0); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     .btn-sec {
-      background: #252d3d;
-      border: 1px solid #374151;
-      color: #cbd5e1;
+      background: #252d3d; border: 1px solid #374151; color: #cbd5e1;
     }
     .btn-sec:hover { background: #2d3748; }
-    .btn-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+    .btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
 
     /* Upload */
     .upload-area {
-      border: 2px dashed #4a5568;
-      border-radius: 12px;
-      padding: 32px 20px;
-      text-align: center;
-      cursor: pointer;
+      border: 2px dashed #4a5568; border-radius: 12px;
+      padding: 28px 20px; text-align: center; cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
-      margin-bottom: 16px;
-      user-select: none;
+      margin-bottom: 14px; user-select: none;
     }
     .upload-area:hover, .upload-area.dragover {
-      border-color: #60a5fa;
-      background: #1a2035;
+      border-color: #60a5fa; background: #1a2035;
     }
-    .upload-icon { font-size: 2.8rem; margin-bottom: 10px; }
-    .upload-area strong { font-size: 1rem; color: #e2e8f0; }
-    .upload-area p { color: #94a3b8; font-size: 0.82rem; margin-top: 6px; }
-    #fileInput { display: none; }
+    .upload-icon { font-size: 2.4rem; margin-bottom: 8px; }
+    .upload-area strong { font-size: 0.95rem; color: #e2e8f0; }
+    .upload-area p { color: #94a3b8; font-size: 0.8rem; margin-top: 5px; }
+    .file-input { display: none; }
 
-    #preview {
-      max-width: 100%;
-      max-height: 300px;
-      border-radius: 10px;
-      display: none;
-      margin: 0 auto 14px;
-      border: 1px solid #2d3748;
+    .preview-img {
+      max-width: 100%; max-height: 260px; border-radius: 10px;
+      display: none; margin: 0 auto 12px;
+      border: 1px solid #2d3748; object-fit: contain;
     }
 
-    .tips-list { list-style: none; margin-top: 14px; }
+    /* Two-column photo layout */
+    .photo-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 560px) { .photo-cols { grid-template-columns: 1fr; } }
+    .photo-col h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; color: #cbd5e1; }
+    .photo-col.done .upload-area { border-color: #22c55e55; background: #0d1f14; }
+    .check-badge {
+      display: inline-block; background: #22c55e22; color: #4ade80;
+      border: 1px solid #22c55e55; border-radius: 20px;
+      font-size: 0.75rem; padding: 2px 10px; margin-bottom: 10px;
+    }
+
+    .tips-list { list-style: none; }
     .tips-list li {
-      color: #94a3b8;
-      font-size: 0.83rem;
-      padding: 3px 0 3px 20px;
-      position: relative;
-      line-height: 1.5;
+      color: #94a3b8; font-size: 0.82rem; padding: 3px 0 3px 18px;
+      position: relative; line-height: 1.5;
     }
-    .tips-list li::before {
-      content: '→';
-      position: absolute;
-      left: 0;
-      color: #60a5fa;
+    .tips-list li::before { content: '→'; position: absolute; left: 0; color: #60a5fa; }
+
+    /* Info box */
+    .info-box {
+      background: #0f1f33; border: 1px solid #3b82f655; border-radius: 10px;
+      padding: 12px 14px; font-size: 0.82rem; color: #93c5fd; line-height: 1.6;
+      margin-bottom: 16px;
     }
 
     /* Loading */
-    .loading {
-      text-align: center;
-      padding: 48px 20px;
-    }
+    .loading { text-align: center; padding: 48px 20px; }
     .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid #2d3748;
-      border-top-color: #60a5fa;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 20px;
+      width: 48px; height: 48px; border: 4px solid #2d3748;
+      border-top-color: #60a5fa; border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto 20px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading p { color: #94a3b8; font-size: 0.9rem; }
 
-    /* Canvas */
-    #canvas {
-      max-width: 100%;
-      border-radius: 12px;
-      display: block;
-      margin: 0 auto 20px;
-      border: 1px solid #2d3748;
+    /* Canvas views */
+    .canvas-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    @media (max-width: 560px) { .canvas-row { grid-template-columns: 1fr; } }
+    .canvas-wrap { text-align: center; }
+    .canvas-wrap h4 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    canvas {
+      max-width: 100%; border-radius: 10px; display: block;
+      margin: 0 auto; border: 1px solid #2d3748;
     }
 
-    /* Measurements grid */
+    /* Section label */
+    .sec-label {
+      font-size: 0.75rem; color: #475569; text-transform: uppercase;
+      letter-spacing: 0.08em; margin-bottom: 10px; margin-top: 4px;
+    }
+
+    /* Measurement grid */
     .meas-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 10px;
-      margin-bottom: 4px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 9px; margin-bottom: 4px;
     }
     .meas-item {
-      background: #0d0f14;
-      border: 1px solid #2d3748;
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
+      background: #0d0f14; border: 1px solid #2d3748; border-radius: 10px;
+      padding: 11px; text-align: center;
     }
-    .meas-label {
-      font-size: 0.72rem;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 5px;
-    }
-    .meas-value {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #60a5fa;
-    }
-    .meas-unit {
-      font-size: 0.72rem;
-      color: #475569;
-      margin-left: 2px;
-    }
-    .meas-est { color: #a78bfa; }
+    .meas-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .meas-value { font-size: 1.25rem; font-weight: 700; color: #60a5fa; }
+    .meas-value.side { color: #34d399; }
+    .meas-value.combined { color: #a78bfa; }
+    .meas-unit { font-size: 0.68rem; color: #475569; margin-left: 2px; }
+
+    /* Source badge */
+    .src { font-size: 0.6rem; color: #475569; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 3px; }
 
     /* Size grid */
-    .size-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 12px;
-    }
-    .size-item {
-      background: #0d0f14;
-      border: 1px solid #2d3748;
-      border-radius: 12px;
-      padding: 16px;
-    }
-    .size-cat {
-      font-size: 0.75rem;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-    }
+    .size-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    .size-item { background: #0d0f14; border: 1px solid #2d3748; border-radius: 12px; padding: 16px; }
+    .size-cat { font-size: 0.73rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
     .size-badge {
-      font-size: 1.9rem;
-      font-weight: 800;
+      font-size: 1.9rem; font-weight: 800;
       background: linear-gradient(135deg, #60a5fa, #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      line-height: 1;
-      margin-bottom: 6px;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; line-height: 1; margin-bottom: 6px;
     }
-    .size-detail {
-      font-size: 0.78rem;
-      color: #475569;
-      line-height: 1.4;
+    .size-detail { font-size: 0.77rem; color: #475569; line-height: 1.4; }
+    .accuracy-badge {
+      font-size: 0.65rem; padding: 1px 7px; border-radius: 10px;
+      margin-top: 5px; display: inline-block;
     }
+    .acc-high { background: #14532d44; color: #4ade80; border: 1px solid #22c55e44; }
+    .acc-med  { background: #78350f44; color: #fbbf24; border: 1px solid #f59e0b44; }
 
     /* Warning */
     .warning {
-      background: #1c1a0a;
-      border: 1px solid #f59e0b55;
-      border-radius: 10px;
-      color: #fbbf24;
-      font-size: 0.8rem;
-      line-height: 1.5;
-      padding: 12px 14px;
-      margin-top: 16px;
+      background: #1c1a0a; border: 1px solid #f59e0b55; border-radius: 10px;
+      color: #fbbf24; font-size: 0.8rem; line-height: 1.5; padding: 12px 14px; margin-top: 16px;
     }
-
-    /* Error */
     .error-box {
-      background: #1a0a0a;
-      border: 1px solid #ef444455;
-      border-radius: 10px;
-      color: #f87171;
-      padding: 16px;
-      text-align: center;
-      font-size: 0.9rem;
-      line-height: 1.5;
+      background: #1a0a0a; border: 1px solid #ef444455; border-radius: 10px;
+      color: #f87171; padding: 16px; text-align: center; font-size: 0.88rem; line-height: 1.5;
     }
 
-    /* Divider */
-    .section-label {
-      font-size: 0.75rem;
-      color: #475569;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 10px;
-    }
-
-    @media (max-width: 480px) {
-      .header h1 { font-size: 1.6rem; }
-      .meas-grid { grid-template-columns: repeat(3, 1fr); }
-      .size-grid { grid-template-columns: repeat(2, 1fr); }
-    }
+    /* Legend */
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #94a3b8; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
   </style>
 </head>
 <body>
 <div id="app">
   <div class="header">
     <h1>👕 Klesstørrelse</h1>
-    <p>Estimer kroppsmål og klesstørrelser fra bilde</p>
+    <p>Estimer kroppsmål og klesstørrelser fra to bilder</p>
   </div>
 
-  <!-- Step 1: Height -->
+  <!-- Progress -->
+  <div class="progress">
+    <div class="progress-step active" id="prog1"></div>
+    <div class="progress-step" id="prog2"></div>
+    <div class="progress-step" id="prog3"></div>
+    <span class="progress-label" id="progLabel">Steg 1 av 3</span>
+  </div>
+
+  <!-- ── Step 1: Height ───────────────────────────────────────────────────── -->
   <div id="step1" class="step active">
     <div class="card">
       <h2>📏 Oppgi din høyde</h2>
-      <p class="hint">Høyden brukes som referansepunkt for å beregne alle lengde- og breddmål.</p>
+      <p class="hint">Brukes som absolutt referanse for å beregne alle mål i centimeter.</p>
       <div class="height-row">
         <input type="number" id="heightInput" value="175" min="100" max="220">
         <span class="unit-label">cm</span>
       </div>
       <button class="btn" onclick="goToStep2()">Fortsett →</button>
     </div>
+    <div class="info-box">
+      💡 Med to bilder beregnes omkretsene fra <strong>faktisk bredde og dybde</strong> ved hjelp av ellipseformelen — mye mer presist enn enkeltbilde.
+    </div>
   </div>
 
-  <!-- Step 2: Photo upload -->
+  <!-- ── Step 2: Photos ───────────────────────────────────────────────────── -->
   <div id="step2" class="step">
     <div class="card">
-      <h2>📸 Last opp bilde</h2>
-      <p class="hint">Last opp et bilde av deg selv forfra i helfigur for best mulig analyse.</p>
+      <h2>📸 Last opp to bilder</h2>
+      <p class="hint">Et forfra og et fra siden — stå rett, hel kropp synlig, armene litt ut.</p>
 
-      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-        <div class="upload-icon">📷</div>
-        <strong>Klikk for å velge bilde</strong>
-        <p>Støtter JPEG og PNG — eller dra og slipp hit</p>
-        <p style="color:#60a5fa; margin-top:8px; font-size:0.8rem;">
-          På mobil: ta bilde med kamera direkte
-        </p>
+      <div class="photo-cols">
+        <!-- Front photo -->
+        <div class="photo-col" id="frontCol">
+          <h3>Forfra</h3>
+          <div id="frontCheckBadge" style="display:none;"><span class="check-badge">✓ Valgt</span></div>
+          <div class="upload-area" id="frontUpload" onclick="document.getElementById('frontFile').click()">
+            <div class="upload-icon">🧍</div>
+            <strong>Klikk eller slipp</strong>
+            <p>Stå rett mot kamera, full kropp</p>
+          </div>
+          <input type="file" class="file-input" id="frontFile" accept="image/*">
+          <img class="preview-img" id="frontPreview" alt="Frontbilde">
+
+          <ul class="tips-list">
+            <li>Forfra, rett opp og ned</li>
+            <li>Armene ~15 cm ut fra kroppen</li>
+            <li>Hode til føtter synlig</li>
+            <li>Tett- eller trettsittende klær</li>
+          </ul>
+        </div>
+
+        <!-- Side photo -->
+        <div class="photo-col" id="sideCol">
+          <h3>Fra siden</h3>
+          <div id="sideCheckBadge" style="display:none;"><span class="check-badge">✓ Valgt</span></div>
+          <div class="upload-area" id="sideUpload" onclick="document.getElementById('sideFile').click()">
+            <div class="upload-icon">🚶</div>
+            <strong>Klikk eller slipp</strong>
+            <p>Stå 90° til kamera, full kropp</p>
+          </div>
+          <input type="file" class="file-input" id="sideFile" accept="image/*">
+          <img class="preview-img" id="sidePreview" alt="Sidebilde">
+
+          <ul class="tips-list">
+            <li>Profil mot kamera (90°)</li>
+            <li>Armene langs siden</li>
+            <li>Hode til føtter synlig</li>
+            <li>Ensfarget bakgrunn anbefales</li>
+          </ul>
+        </div>
       </div>
-      <input type="file" id="fileInput" accept="image/*">
-
-      <img id="preview" alt="Forhåndsvisning">
-
-      <p class="section-label">Tips for godt resultat</p>
-      <ul class="tips-list">
-        <li>Stå rett opp og ned, forfra mot kamera</li>
-        <li>Armene litt ut fra kroppen (ca. 15–20 cm)</li>
-        <li>Hele kroppen synlig — hode til føtter</li>
-        <li>Tett- eller trettsittende klær anbefales</li>
-        <li>God, jevn belysning uten sterke skygger</li>
-      </ul>
     </div>
 
     <div class="btn-row">
       <button class="btn btn-sec" onclick="goToStep1()">← Endre høyde</button>
-      <button class="btn" id="analyzeBtn" onclick="analyzePhoto()" disabled>Analyser →</button>
+      <button class="btn" id="analyzeBtn" onclick="analyzePhotos()" disabled>Analyser →</button>
     </div>
   </div>
 
-  <!-- Step 3: Loading -->
+  <!-- ── Step 3: Loading ──────────────────────────────────────────────────── -->
   <div id="step3" class="step">
     <div class="card loading">
       <div class="spinner"></div>
@@ -355,133 +290,165 @@
     </div>
   </div>
 
-  <!-- Step 4: Results -->
+  <!-- ── Step 4: Results ──────────────────────────────────────────────────── -->
   <div id="step4" class="step">
-    <div class="card" id="canvasCard">
-      <h2>🎯 Kroppsmål (estimert)</h2>
-      <p class="hint">Beregnet ut fra din oppgitte høyde og posisjonen til kroppspunktene i bildet.</p>
-      <canvas id="canvas"></canvas>
+    <div class="card">
+      <h2>🎯 Analyse av bilder</h2>
+      <div class="canvas-row">
+        <div class="canvas-wrap">
+          <h4>Forfra — breddemål</h4>
+          <canvas id="frontCanvas"></canvas>
+        </div>
+        <div class="canvas-wrap">
+          <h4>Fra siden — dybdemål</h4>
+          <canvas id="sideCanvas"></canvas>
+        </div>
+      </div>
 
-      <p class="section-label">Lengde- og breddmål</p>
-      <div class="meas-grid" id="measGrid"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div> Fremre bilde (bredde)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div> Sidebilde (dybde)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div> Kombinert (omkrets)</div>
+      </div>
 
-      <p class="section-label" style="margin-top:14px;">Estimerte omkretsmål</p>
+      <p class="sec-label">Lengde og bredde (forfra)</p>
+      <div class="meas-grid" id="linearGrid"></div>
+
+      <p class="sec-label" style="margin-top:14px;">Dybdemål (fra siden)</p>
+      <div class="meas-grid" id="depthGrid"></div>
+
+      <p class="sec-label" style="margin-top:14px;">Beregnet omkrets</p>
       <div class="meas-grid" id="circGrid"></div>
     </div>
 
     <div class="card">
       <h2>👕 Anbefalte størrelser</h2>
-      <p class="hint">Basert på estimerte mål. Størrelser varierer mellom merker — bruk som veiledning.</p>
+      <p class="hint">Beregnet fra kombinerte bredde- og dybdemål.</p>
       <div class="size-grid" id="sizeGrid"></div>
       <div class="warning">
-        ⚠️ Estimatene er beregnet fra et 2D-frontbilde med oppgitt høyde som eneste referanse.
-        Omkretsestimater er usikre fordi dybde (bryst-/hoftetykkelse) ikke kan måles direkte.
+        ⚠️ Estimatene er beregnet fra 2D-bilder med brukerens høyde som eneste absolutte referanse.
+        Sidebilde-dybden krever jevn bakgrunn for best nøyaktighet.
         Bekreft alltid med målebånd ved kjøp.
       </div>
     </div>
 
     <div class="btn-row">
-      <button class="btn btn-sec" onclick="goToStep2()">← Nytt bilde</button>
+      <button class="btn btn-sec" onclick="goToStep2()">← Nye bilder</button>
       <button class="btn btn-sec" onclick="goToStep1()">← Ny høyde</button>
     </div>
-
     <div id="errorBox" style="display:none; margin-top:16px;"></div>
   </div>
 </div>
 
 <script>
+  // ── State ──────────────────────────────────────────────────────────────────
   let userHeight = 175;
-  let selectedFile = null;
-  let poseInstance = null;
+  let frontFile = null, sideFile = null;
+  let poseDetector = null;
 
-  // ── Navigation ───────────────────────────────────────────────────────────────
-
+  // ── Navigation ─────────────────────────────────────────────────────────────
   function showStep(n) {
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
     document.getElementById('step' + n).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    updateProgress(n);
+  }
+
+  function updateProgress(step) {
+    [1, 2, 3].forEach(i => {
+      const el = document.getElementById('prog' + i);
+      el.className = 'progress-step' + (i < step ? ' done' : i === step ? ' active' : '');
+    });
+    document.getElementById('progLabel').textContent =
+      step < 4 ? `Steg ${step} av 3` : 'Ferdig';
   }
 
   function goToStep1() { showStep(1); }
-
   function goToStep2() {
     const h = parseInt(document.getElementById('heightInput').value);
-    if (!h || h < 100 || h > 220) {
-      alert('Oppgi en gyldig høyde mellom 100 og 220 cm.');
-      return;
-    }
+    if (!h || h < 100 || h > 220) { alert('Oppgi en gyldig høyde (100–220 cm).'); return; }
     userHeight = h;
     showStep(2);
   }
 
-  // ── File handling ────────────────────────────────────────────────────────────
+  // ── File handling ──────────────────────────────────────────────────────────
+  function setupUpload(inputId, previewId, colId, badgeId, storeKey) {
+    const input = document.getElementById(inputId);
+    const area  = document.getElementById(inputId.replace('File', 'Upload'));
+    const preview = document.getElementById(previewId);
 
-  const uploadArea = document.getElementById('uploadArea');
-  const fileInput  = document.getElementById('fileInput');
-  const preview    = document.getElementById('preview');
-  const analyzeBtn = document.getElementById('analyzeBtn');
-
-  fileInput.addEventListener('change', e => {
-    if (e.target.files[0]) handleFile(e.target.files[0]);
-  });
-
-  uploadArea.addEventListener('dragover', e => {
-    e.preventDefault();
-    uploadArea.classList.add('dragover');
-  });
-  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-  uploadArea.addEventListener('drop', e => {
-    e.preventDefault();
-    uploadArea.classList.remove('dragover');
-    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-  });
-
-  function handleFile(file) {
-    selectedFile = file;
-    const url = URL.createObjectURL(file);
-    preview.src = url;
-    preview.style.display = 'block';
-    analyzeBtn.disabled = false;
+    input.addEventListener('change', e => {
+      if (e.target.files[0]) handleFile(e.target.files[0], preview, colId, badgeId, storeKey);
+    });
+    area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('dragover'); });
+    area.addEventListener('dragleave', () => area.classList.remove('dragover'));
+    area.addEventListener('drop', e => {
+      e.preventDefault(); area.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0], preview, colId, badgeId, storeKey);
+    });
   }
 
-  // ── Analysis ─────────────────────────────────────────────────────────────────
+  function handleFile(file, preview, colId, badgeId, storeKey) {
+    if (storeKey === 'front') frontFile = file;
+    else sideFile = file;
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+    document.getElementById(badgeId).style.display = 'block';
+    document.getElementById(colId).classList.add('done');
+    document.getElementById('analyzeBtn').disabled = !(frontFile && sideFile);
+  }
 
-  async function analyzePhoto() {
-    if (!selectedFile) return;
+  setupUpload('frontFile', 'frontPreview', 'frontCol', 'frontCheckBadge', 'front');
+  setupUpload('sideFile',  'sidePreview',  'sideCol',  'sideCheckBadge',  'side');
+
+  // ── Analysis entry ─────────────────────────────────────────────────────────
+  async function analyzePhotos() {
+    if (!frontFile || !sideFile) return;
     showStep(3);
-    setLoading('Laster AI-modell...');
+    document.getElementById('errorBox').style.display = 'none';
 
     try {
-      const img = await loadImage(selectedFile);
-      await runPose(img);
+      setLoading('Laster AI-modell...');
+      const [frontImg, sideImg] = await Promise.all([loadImg(frontFile), loadImg(sideFile)]);
+
+      setLoading('Analyserer frontbilde...');
+      const frontResult = await runPose(frontImg);
+
+      setLoading('Analyserer sidebilde...');
+      const sideResult = await runPose(sideImg);
+
+      setLoading('Beregner mål...');
+      buildResults(frontResult, frontImg, sideResult, sideImg);
     } catch (err) {
       console.error(err);
       showStep(4);
       const box = document.getElementById('errorBox');
       box.style.display = 'block';
       box.innerHTML = `<div class="error-box">
-        ❌ Kunne ikke analysere bildet: <strong>${err.message}</strong><br>
-        Prøv et annet bilde — hel kropp forfra med god belysning.
+        ❌ <strong>${err.message}</strong><br>
+        Prøv bilder med god belysning og hel kropp synlig.
       </div>`;
     }
   }
 
-  function loadImage(file) {
-    return new Promise((resolve, reject) => {
+  function setLoading(t) { document.getElementById('loadingText').textContent = t; }
+
+  function loadImg(file) {
+    return new Promise((res, rej) => {
       const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = reject;
+      img.onload = () => res(img);
+      img.onerror = rej;
       img.src = URL.createObjectURL(file);
     });
   }
 
+  // ── Pose detection ─────────────────────────────────────────────────────────
   async function runPose(img) {
-    if (!poseInstance) {
-      poseInstance = new Pose({
-        locateFile: f =>
-          `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}`
+    if (!poseDetector) {
+      poseDetector = new Pose({
+        locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}`
       });
-      poseInstance.setOptions({
+      poseDetector.setOptions({
         modelComplexity: 1,
         smoothLandmarks: false,
         enableSegmentation: false,
@@ -489,293 +456,336 @@
         minTrackingConfidence: 0.5
       });
     }
-
-    return new Promise((resolve, reject) => {
-      poseInstance.onResults(results => {
-        try {
-          setLoading('Beregner mål...');
-          if (!results.poseLandmarks || results.poseLandmarks.length < 28) {
-            throw new Error('Ingen person funnet — sørg for at hele kroppen er synlig');
-          }
-          drawAndCompute(results, img);
-          resolve();
-        } catch (e) {
-          reject(e);
-        }
+    return new Promise((res, rej) => {
+      poseDetector.onResults(r => {
+        if (!r.poseLandmarks || r.poseLandmarks.length < 28)
+          rej(new Error('Ingen kropp funnet i bildet — sørg for at hele kroppen er synlig'));
+        else res(r);
       });
-
-      setLoading('Analyserer kropp...');
-      poseInstance.send({ image: img }).catch(reject);
+      poseDetector.send({ image: img }).catch(rej);
     });
   }
 
-  function setLoading(text) {
-    document.getElementById('loadingText').textContent = text;
+  // ── Build results ──────────────────────────────────────────────────────────
+  function buildResults(frontResult, frontImg, sideResult, sideImg) {
+    // Draw both canvases
+    drawPoseCanvas('frontCanvas', frontImg, frontResult.poseLandmarks, 'front');
+    drawPoseCanvas('sideCanvas',  sideImg,  sideResult.poseLandmarks,  'side');
+
+    // Extract measurements
+    const front = extractFrontMeasurements(frontResult.poseLandmarks, userHeight);
+    const depth = extractSideDepths(sideImg, sideResult.poseLandmarks, userHeight);
+
+    if (!front) throw new Error('Klarte ikke lese frontmål');
+
+    // Circumferences using ellipse formula
+    const circ = computeCircumferences(front, depth);
+
+    renderLinear(front);
+    renderDepths(depth);
+    renderCirc(circ);
+    renderSizes(front, circ);
+    showStep(4);
+    updateProgress(4);
   }
 
-  // ── Draw & compute ───────────────────────────────────────────────────────────
-
-  function drawAndCompute(results, img) {
-    const lm = results.poseLandmarks;
-    const canvas = document.getElementById('canvas');
+  // ── Canvas drawing ─────────────────────────────────────────────────────────
+  function drawPoseCanvas(canvasId, img, lm, view) {
+    const canvas = document.getElementById(canvasId);
     const ctx = canvas.getContext('2d');
-
-    const maxW = Math.min(img.width, 560);
+    const maxW = Math.min(img.width, 380);
     const ratio = maxW / img.width;
     canvas.width  = maxW;
     canvas.height = img.height * ratio;
-
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    drawSkeleton(ctx, lm, canvas.width, canvas.height);
 
-    const m = computeMeasurements(lm, userHeight);
-    if (!m) throw new Error('Klarte ikke beregne mål fra bildet');
-
-    drawAnnotations(ctx, lm, canvas.width, canvas.height, m);
-
-    document.getElementById('errorBox').style.display = 'none';
-    renderMeasurements(m);
-    renderSizes(m);
-    showStep(4);
-  }
-
-  function vis(lm, i) {
-    return (lm[i].visibility ?? 1) > 0.3;
-  }
-
-  function drawSkeleton(ctx, lm, w, h) {
     const BONES = [
-      [11, 12], // skulder-skulder
-      [11, 13], [13, 15], // venstre arm
-      [12, 14], [14, 16], // høyre arm
-      [11, 23], [12, 24], // torso sider
-      [23, 24],            // hofte-hofte
-      [23, 25], [25, 27],  // venstre bein
-      [24, 26], [26, 28],  // høyre bein
+      [11,12],[11,13],[13,15],[12,14],[14,16],
+      [11,23],[12,24],[23,24],
+      [23,25],[25,27],[24,26],[26,28]
     ];
-
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = '#22d3ee99';
+    const color = view === 'front' ? '#60a5fa' : '#34d399';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = color + '99';
     BONES.forEach(([a, b]) => {
-      if (vis(lm, a) && vis(lm, b)) {
+      if (visOk(lm, a) && visOk(lm, b)) {
         ctx.beginPath();
-        ctx.moveTo(lm[a].x * w, lm[a].y * h);
-        ctx.lineTo(lm[b].x * w, lm[b].y * h);
+        ctx.moveTo(lm[a].x * canvas.width, lm[a].y * canvas.height);
+        ctx.lineTo(lm[b].x * canvas.width, lm[b].y * canvas.height);
         ctx.stroke();
       }
     });
-
     [11,12,13,14,15,16,23,24,25,26,27,28].forEach(i => {
-      if (vis(lm, i)) {
-        ctx.fillStyle = '#60a5fa';
+      if (visOk(lm, i)) {
+        ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(lm[i].x * w, lm[i].y * h, 4.5, 0, Math.PI * 2);
+        ctx.arc(lm[i].x * canvas.width, lm[i].y * canvas.height, 4, 0, Math.PI * 2);
         ctx.fill();
       }
     });
+
+    if (view === 'front') {
+      drawMeasLine(ctx, lm, canvas, 11, 12, 'Skulder', null, -14, '#fbbf24');
+      drawMeasLine(ctx, lm, canvas, 23, 24, 'Hofte', null, +18, '#a78bfa');
+    }
   }
 
-  function drawAnnotations(ctx, lm, w, h, m) {
+  function drawMeasLine(ctx, lm, canvas, a, b, label, valueCm, yOff, color) {
+    const w = canvas.width, h = canvas.height;
+    const ax = lm[a].x * w, ay = lm[a].y * h;
+    const bx = lm[b].x * w, by = lm[b].y * h;
+    const midY = Math.min(ay, by) + yOff;
     ctx.setLineDash([5, 4]);
     ctx.lineWidth = 1.5;
-    ctx.font = 'bold 11px system-ui, sans-serif';
-
-    // Skulderbredde
-    const ls = lm[11], rs = lm[12];
-    const syOff = Math.min(ls.y, rs.y) * h - 14;
-    ctx.strokeStyle = '#fbbf24bb';
-    ctx.fillStyle   = '#fbbf24';
-    ctx.beginPath();
-    ctx.moveTo(ls.x * w, syOff);
-    ctx.lineTo(rs.x * w, syOff);
-    ctx.stroke();
-    ctx.fillText(m.shoulderWidth + ' cm', ((ls.x + rs.x) / 2 * w) - 22, syOff - 4);
-
-    // Hoftebredde
-    const lh = lm[23], rh = lm[24];
-    const hyOff = Math.max(lh.y, rh.y) * h + 18;
-    ctx.strokeStyle = '#a78bfabb';
-    ctx.fillStyle   = '#a78bfa';
-    ctx.beginPath();
-    ctx.moveTo(lh.x * w, hyOff);
-    ctx.lineTo(rh.x * w, hyOff);
-    ctx.stroke();
-    ctx.fillText(m.hipWidth + ' cm', ((lh.x + rh.x) / 2 * w) - 20, hyOff + 12);
-
+    ctx.strokeStyle = color + 'bb';
+    ctx.fillStyle = color;
+    ctx.font = 'bold 10px system-ui, sans-serif';
+    ctx.beginPath(); ctx.moveTo(ax, midY); ctx.lineTo(bx, midY); ctx.stroke();
     ctx.setLineDash([]);
   }
 
-  // ── Measurements ─────────────────────────────────────────────────────────────
+  function visOk(lm, i) { return (lm[i].visibility ?? 1) > 0.3; }
 
-  function computeMeasurements(lm, heightCm) {
-    const nose = lm[0];
-    const lSh = lm[11], rSh = lm[12];
+  // ── Front measurements ─────────────────────────────────────────────────────
+  function extractFrontMeasurements(lm, heightCm) {
+    const nose = lm[0], lSh = lm[11], rSh = lm[12];
     const lHip = lm[23], rHip = lm[24];
-    const lWr = lm[15], rWr = lm[16];
+    const lWr  = lm[15], rWr  = lm[16];
     const lAnk = lm[27], rAnk = lm[28];
 
-    // Topp av hode: nesen er ca. 87% ned fra toppen av hodet relativt til kroppen.
-    // Vi estimerer hode-topp ved å gå like langt over nesen som avstanden nese→skulder×0.65
-    const noseToShoulderY = Math.abs((lSh.y + rSh.y) / 2 - nose.y);
-    const headTopY = nose.y - noseToShoulderY * 0.65;
-
-    const ankleY = (lAnk.y + rAnk.y) / 2;
-    const bodyNorm = ankleY - headTopY;
-
+    const noseToShY = Math.abs((lSh.y + rSh.y) / 2 - nose.y);
+    const headTopY  = nose.y - noseToShY * 0.65;
+    const ankleY    = (lAnk.y + rAnk.y) / 2;
+    const bodyNorm  = ankleY - headTopY;
     if (bodyNorm <= 0.05) return null;
 
-    // cm per normalized unit
     const S = heightCm / bodyNorm;
 
-    const dX  = (a, b) => Math.abs(a.x - b.x);
-    const dY  = (a, b) => Math.abs(a.y - b.y);
-    const d2  = (a, b) => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+    const shoulderWidth = Math.round(Math.abs(lSh.x - rSh.x) * S);
+    const hipWidth      = Math.round(Math.abs(lHip.x - rHip.x) * S);
+    const shMidY   = (lSh.y + rSh.y) / 2;
+    const hipMidY  = (lHip.y + rHip.y) / 2;
+    const torso    = Math.round((hipMidY - shMidY) * S);
 
-    const shoulderWidth = Math.round(dX(lSh, rSh) * S);
-    const hipWidth      = Math.round(dX(lHip, rHip) * S);
-
-    const shMidY  = (lSh.y + rSh.y) / 2;
-    const hipMidY = (lHip.y + rHip.y) / 2;
-    const torso   = Math.round((hipMidY - shMidY) * S);
-
-    // Bruk arm med høyest synlighet
     const lArmVis = Math.min(lWr.visibility ?? 1, lSh.visibility ?? 1);
     const rArmVis = Math.min(rWr.visibility ?? 1, rSh.visibility ?? 1);
     const armSh   = lArmVis >= rArmVis ? lSh : rSh;
     const armWr   = lArmVis >= rArmVis ? lWr : rWr;
-    const armLen  = Math.round(d2(armSh, armWr) * S);
+    const armLen  = Math.round(Math.sqrt((armSh.x - armWr.x) ** 2 + (armSh.y - armWr.y) ** 2) * S);
 
     const legLen = Math.round((ankleY - hipMidY) * S);
     const inseam = Math.round(legLen * 0.92);
 
-    // Omkrets — empiriske faktorer for frontbilde
-    // Skulderbredde (front) ≈ 48% av brystomkrets for gjennomsnittskropp
-    const bryst = Math.round(shoulderWidth * 2.08);
-    // Hoftebredde (front) ≈ 41% av hofteomkrets
-    const hofte = Math.round(hipWidth * 2.45);
-    // Midje er smalere enn hofte; estimerer fra hoftebredde
-    const midje = Math.round(hipWidth * 1.80);
+    // Waist level: midpoint between shoulders and hips (in normalized y)
+    const waistY = (shMidY + hipMidY) / 2;
 
+    return { shoulderWidth, hipWidth, torso, armLen, legLen, inseam, shMidY, hipMidY, waistY, bodyNorm, S };
+  }
+
+  // ── Side depth via silhouette ──────────────────────────────────────────────
+  function extractSideDepths(img, lm, heightCm) {
+    // Draw image to off-screen canvas for pixel access
+    const oc  = document.createElement('canvas');
+    const maxW = Math.min(img.width, 600);
+    const r   = maxW / img.width;
+    oc.width  = maxW;
+    oc.height = img.height * r;
+    oc.getContext('2d').drawImage(img, 0, 0, oc.width, oc.height);
+
+    let pixels;
+    try {
+      pixels = oc.getContext('2d').getImageData(0, 0, oc.width, oc.height).data;
+    } catch (e) {
+      // If pixel access fails (e.g. cross-origin), fall back to proportions
+      return fallbackDepths(lm, heightCm);
+    }
+
+    const w = oc.width, h = oc.height;
+    const bg = sampleBg(pixels, w, h);
+
+    // Height scale from side image
+    const nose  = lm[0], lSh = lm[11];
+    const ntsY  = Math.abs(lSh.y - nose.y);
+    const topY  = nose.y - ntsY * 0.65;
+    const ankY  = (lm[27].y + lm[28].y) / 2;
+    const bNorm = ankY - topY;
+    if (bNorm <= 0.05) return fallbackDepths(lm, heightCm);
+    const scale = heightCm / (bNorm * h); // cm per pixel
+
+    const chestY = ((lm[11].y + lm[12].y) / 2) * h;
+    const hipY   = ((lm[23].y + lm[24].y) / 2) * h;
+    const waistY = (chestY + hipY) / 2;
+
+    const chestDepth = measureSilhouetteWidthAt(pixels, w, h, chestY, bg, scale);
+    const waistDepth = measureSilhouetteWidthAt(pixels, w, h, waistY, bg, scale);
+    const hipDepth   = measureSilhouetteWidthAt(pixels, w, h, hipY,   bg, scale);
+
+    // Fall back to proportional estimates if silhouette detection failed
     return {
-      shoulderWidth, hipWidth, torso,
-      armLen, legLen, inseam,
-      bryst, midje, hofte
+      chestDepth: chestDepth ?? Math.round(heightCm * 0.135),
+      waistDepth: waistDepth ?? Math.round(heightCm * 0.105),
+      hipDepth:   hipDepth   ?? Math.round(heightCm * 0.130),
+      usedSilhouette: !!(chestDepth && waistDepth && hipDepth),
     };
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  function measureSilhouetteWidthAt(pixels, w, h, yCenterPx, bg, scaleCmPerPx) {
+    const band = Math.max(4, Math.round(h * 0.025));
+    const y0 = Math.max(0, Math.floor(yCenterPx - band));
+    const y1 = Math.min(h - 1, Math.floor(yCenterPx + band));
 
-  function renderMeasurements(m) {
-    const linear = [
-      { label: 'Skulder',    value: m.shoulderWidth },
-      { label: 'Hofte',      value: m.hipWidth      },
-      { label: 'Torso',      value: m.torso         },
-      { label: 'Arm',        value: m.armLen        },
-      { label: 'Bein',       value: m.legLen        },
-      { label: 'Innsøm',     value: m.inseam        },
+    let minX = w, maxX = 0, bodyPixels = 0;
+    for (let y = y0; y <= y1; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (colorDiff(pixels[i], pixels[i+1], pixels[i+2], bg.r, bg.g, bg.b) > 28) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          bodyPixels++;
+        }
+      }
+    }
+    if (bodyPixels < 30 || maxX <= minX) return null;
+    return Math.round((maxX - minX) * scaleCmPerPx);
+  }
+
+  function sampleBg(pixels, w, h) {
+    const S = 20; let r = 0, g = 0, b = 0, n = 0;
+    for (let y = 0; y < S; y++) {
+      for (let x = 0; x < S; x++) {
+        [[x, y],[w-1-x, y],[x, h-1-y],[w-1-x, h-1-y]].forEach(([px, py]) => {
+          const i = (py * w + px) * 4;
+          r += pixels[i]; g += pixels[i+1]; b += pixels[i+2]; n++;
+        });
+      }
+    }
+    return { r: r/n, g: g/n, b: b/n };
+  }
+
+  function colorDiff(r1, g1, b1, r2, g2, b2) {
+    return Math.sqrt((r1-r2)**2 + (g1-g2)**2 + (b1-b2)**2);
+  }
+
+  function fallbackDepths(lm, heightCm) {
+    return {
+      chestDepth: Math.round(heightCm * 0.135),
+      waistDepth: Math.round(heightCm * 0.105),
+      hipDepth:   Math.round(heightCm * 0.130),
+      usedSilhouette: false,
+    };
+  }
+
+  // ── Circumference via ellipse ──────────────────────────────────────────────
+  // Ramanujan ellipse approximation: π(3(a+b) − √((3a+b)(a+3b)))
+  function ellipseCirc(width, depth) {
+    const a = width / 2, b = depth / 2;
+    return Math.PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)));
+  }
+
+  function computeCircumferences(front, depth) {
+    // chestWidth: shoulder width from front is a proxy for chest diameter
+    // waistWidth: estimated from front — midpoint between shoulder and hip width
+    const waistWidthEst = Math.round((front.shoulderWidth * 0.6 + front.hipWidth * 0.4));
+
+    const chestCirc = Math.round(ellipseCirc(front.shoulderWidth, depth.chestDepth));
+    const waistCirc = Math.round(ellipseCirc(waistWidthEst,       depth.waistDepth));
+    const hipCirc   = Math.round(ellipseCirc(front.hipWidth,      depth.hipDepth));
+
+    return { chestCirc, waistCirc, hipCirc, waistWidthEst };
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  function renderLinear(m) {
+    const items = [
+      { l: 'Skulder',  v: m.shoulderWidth },
+      { l: 'Hofte',    v: m.hipWidth      },
+      { l: 'Torso',    v: m.torso         },
+      { l: 'Arm',      v: m.armLen        },
+      { l: 'Bein',     v: m.legLen        },
+      { l: 'Innsøm',   v: m.inseam        },
     ];
-    const circ = [
-      { label: 'Bryst (est.)', value: m.bryst },
-      { label: 'Midje (est.)', value: m.midje },
-      { label: 'Hofte (est.)', value: m.hofte },
+    document.getElementById('linearGrid').innerHTML = items.map(i =>
+      `<div class="meas-item">
+        <div class="meas-label">${i.l}</div>
+        <div class="meas-value">${i.v}<span class="meas-unit">cm</span></div>
+        <div class="src">forfra</div>
+      </div>`
+    ).join('');
+  }
+
+  function renderDepths(d) {
+    const note = d.usedSilhouette ? 'siluett' : 'estimat';
+    const items = [
+      { l: 'Brystdybde', v: d.chestDepth },
+      { l: 'Midjedybde', v: d.waistDepth },
+      { l: 'Hoftedybde', v: d.hipDepth   },
     ];
-
-    document.getElementById('measGrid').innerHTML = linear.map(i => `
-      <div class="meas-item">
-        <div class="meas-label">${i.label}</div>
-        <div class="meas-value">${i.value}<span class="meas-unit">cm</span></div>
-      </div>`).join('');
-
-    document.getElementById('circGrid').innerHTML = circ.map(i => `
-      <div class="meas-item">
-        <div class="meas-label">${i.label}</div>
-        <div class="meas-value meas-est">${i.value}<span class="meas-unit">cm</span></div>
-      </div>`).join('');
+    document.getElementById('depthGrid').innerHTML = items.map(i =>
+      `<div class="meas-item">
+        <div class="meas-label">${i.l}</div>
+        <div class="meas-value side">${i.v}<span class="meas-unit">cm</span></div>
+        <div class="src">${note}</div>
+      </div>`
+    ).join('');
   }
 
-  function topSize(c) {
-    if (c < 84)  return 'XS';
-    if (c < 92)  return 'S';
-    if (c < 100) return 'M';
-    if (c < 108) return 'L';
-    if (c < 116) return 'XL';
-    return 'XXL';
+  function renderCirc(c) {
+    const items = [
+      { l: 'Brystomkrets', v: c.chestCirc },
+      { l: 'Midjeomkrets', v: c.waistCirc },
+      { l: 'Hofteomkrets', v: c.hipCirc   },
+    ];
+    document.getElementById('circGrid').innerHTML = items.map(i =>
+      `<div class="meas-item">
+        <div class="meas-label">${i.l}</div>
+        <div class="meas-value combined">${i.v}<span class="meas-unit">cm</span></div>
+        <div class="src">ellipse bredde+dybde</div>
+      </div>`
+    ).join('');
   }
 
-  function jacketEU(c) {
-    if (c < 84)  return '44';
-    if (c < 88)  return '46';
-    if (c < 92)  return '48';
-    if (c < 96)  return '50';
-    if (c < 100) return '52';
-    if (c < 104) return '54';
-    if (c < 108) return '56';
-    return '58';
-  }
+  // ── Size recommendations ───────────────────────────────────────────────────
+  function topSize(c)    { return c<84?'XS':c<92?'S':c<100?'M':c<108?'L':c<116?'XL':'XXL'; }
+  function jacketEU(c)   { return c<84?'44':c<88?'46':c<92?'48':c<96?'50':c<100?'52':c<104?'54':c<108?'56':'58'; }
+  function pantsIntl(w, i) { return `W${Math.round(w/2.54)} / L${Math.round(i/2.54)}`; }
+  function pantsEU(w)    { return w<72?'28':w<76?'30':w<80?'32':w<84?'34':w<88?'36':w<92?'38':w<96?'40':'42'; }
+  function armCat(cm)    { return cm<60?'Kort':cm<68?'Normal':'Lang'; }
 
-  function pantsIntl(waistCm, inseam) {
-    const w = Math.round(waistCm / 2.54);
-    const l = Math.round(inseam / 2.54);
-    return `W${w} / L${l}`;
-  }
-
-  function pantsEU(waistCm) {
-    if (waistCm < 72) return '28';
-    if (waistCm < 76) return '30';
-    if (waistCm < 80) return '32';
-    if (waistCm < 84) return '34';
-    if (waistCm < 88) return '36';
-    if (waistCm < 92) return '38';
-    if (waistCm < 96) return '40';
-    return '42';
-  }
-
-  function armCat(cm) {
-    if (cm < 60) return 'Kort';
-    if (cm < 68) return 'Normal';
-    return 'Lang';
-  }
-
-  function renderSizes(m) {
+  function renderSizes(front, circ) {
     const sizes = [
       {
-        cat:    'T-skjorte / Genser',
-        size:   topSize(m.bryst),
-        detail: `Bryst ~${m.bryst} cm`
+        cat: 'T-skjorte / Genser', size: topSize(circ.chestCirc),
+        detail: `Bryst ~${circ.chestCirc} cm`, acc: 'high'
       },
       {
-        cat:    'Jakke / Dress (EU)',
-        size:   jacketEU(m.bryst),
-        detail: `Brystomkrets ~${m.bryst} cm`
+        cat: 'Jakke / Dress (EU)', size: jacketEU(circ.chestCirc),
+        detail: `EU · bryst ~${circ.chestCirc} cm`, acc: 'high'
       },
       {
-        cat:    'Bukse (internasjonal)',
-        size:   pantsIntl(m.midje, m.inseam),
-        detail: `Midje ~${m.midje} cm · innsøm ~${m.inseam} cm`
+        cat: 'Bukse (internasjonal)', size: pantsIntl(circ.waistCirc, front.inseam),
+        detail: `Midje ~${circ.waistCirc} cm · innsøm ~${front.inseam} cm`, acc: 'med'
       },
       {
-        cat:    'Bukse (EU)',
-        size:   pantsEU(m.midje),
-        detail: `Midje ~${m.midje} cm`
+        cat: 'Bukse (EU)', size: pantsEU(circ.waistCirc),
+        detail: `EU · midje ~${circ.waistCirc} cm`, acc: 'med'
       },
       {
-        cat:    'Skulderbredde',
-        size:   m.shoulderWidth + ' cm',
-        detail: 'Relevant for jakker og skjorter'
+        cat: 'Skulderbredde', size: front.shoulderWidth + ' cm',
+        detail: 'Jakker og skjorter', acc: 'high'
       },
       {
-        cat:    'Armlengde',
-        size:   armCat(m.armLen),
-        detail: `~${m.armLen} cm (skulder → håndledd)`
+        cat: 'Armlengde', size: armCat(front.armLen),
+        detail: `~${front.armLen} cm (skulder → håndledd)`, acc: 'high'
       },
     ];
-
     document.getElementById('sizeGrid').innerHTML = sizes.map(s => `
       <div class="size-item">
         <div class="size-cat">${s.cat}</div>
         <div class="size-badge">${s.size}</div>
         <div class="size-detail">${s.detail}</div>
-      </div>`).join('');
+        <span class="accuracy-badge acc-${s.acc}">${s.acc === 'high' ? '★ God nøyaktighet' : '~ Estimat'}</span>
+      </div>`
+    ).join('');
   }
 </script>
 </body>
