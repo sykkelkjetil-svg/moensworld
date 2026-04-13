@@ -6,6 +6,7 @@
 <title>BikeFit — Finn din perfekte sykkelposisjon</title>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+<script src="/lang.js"></script>
 <style>
 :root {
   --primary: #1a73e8;
@@ -240,7 +241,11 @@ input[type=range]::-webkit-slider-thumb {
 <header>
   <div>
     <div class="logo">Bike<span>Fit</span></div>
-    <div class="logo-sub">Finn din perfekte sykkelposisjon</div>
+    <div class="logo-sub" data-i18n="bf_sub">Finn din perfekte sykkelposisjon</div>
+  </div>
+  <div class="lang-sw" style="margin-left:auto;">
+    <button data-lang-btn="no" onclick="setLang('no')">🇳🇴 NO</button>
+    <button data-lang-btn="en" onclick="setLang('en')">🇬🇧 EN</button>
   </div>
 </header>
 
@@ -248,74 +253,74 @@ input[type=range]::-webkit-slider-thumb {
 
   <!-- Step indicator -->
   <div class="steps">
-    <div class="step active" id="s1"><div class="step-num">1</div><span class="step-lbl">Modus</span></div>
+    <div class="step active" id="s1"><div class="step-num">1</div><span class="step-lbl" data-i18n="bf_s1">Modus</span></div>
     <div class="step-line"></div>
-    <div class="step" id="s2"><div class="step-num">2</div><span class="step-lbl">Sykkeltype</span></div>
+    <div class="step" id="s2"><div class="step-num">2</div><span class="step-lbl" data-i18n="bf_s2">Sykkeltype</span></div>
     <div class="step-line"></div>
-    <div class="step" id="s3"><div class="step-num">3</div><span class="step-lbl">Kjørestil</span></div>
+    <div class="step" id="s3"><div class="step-num">3</div><span class="step-lbl" data-i18n="bf_s3">Kjørestil</span></div>
     <div class="step-line"></div>
-    <div class="step" id="s4"><div class="step-num">4</div><span class="step-lbl">Mål</span></div>
+    <div class="step" id="s4"><div class="step-num">4</div><span class="step-lbl" data-i18n="bf_s4">Mål</span></div>
     <div class="step-line"></div>
-    <div class="step" id="s5"><div class="step-num">5</div><span class="step-lbl">Resultat</span></div>
+    <div class="step" id="s5"><div class="step-num">5</div><span class="step-lbl" data-i18n="bf_s5">Resultat</span></div>
   </div>
 
   <!-- 1. Mode -->
   <div class="card">
-    <div class="card-title">🎯 Velg modus</div>
+    <div class="card-title" data-i18n="bf_mode_title">🎯 Velg modus</div>
     <div class="mode-row">
       <button class="mode-btn active" id="mb-simple" onclick="setMode('simple')">
         <span class="mode-icon">⚡</span>
-        Enkel
-        <div class="mode-desc">Kun høyde — raskt og enkelt</div>
+        <span data-i18n="bf_mode_simple">Enkel</span>
+        <div class="mode-desc" data-i18n="bf_mode_simple_d">Kun høyde — raskt og enkelt</div>
       </button>
       <button class="mode-btn" id="mb-advanced" onclick="setMode('advanced')">
         <span class="mode-icon">🔬</span>
-        Avansert
-        <div class="mode-desc">Alle kroppsmål — presis tilpasning</div>
+        <span data-i18n="bf_mode_adv">Avansert</span>
+        <div class="mode-desc" data-i18n="bf_mode_adv_d">Alle kroppsmål — presis tilpasning</div>
       </button>
     </div>
   </div>
 
   <!-- 2. Bike type -->
   <div class="card">
-    <div class="card-title">🚲 Sykkeltype</div>
+    <div class="card-title" data-i18n="bf_bike_title">🚲 Sykkeltype</div>
     <div class="bike-types">
       <div class="bt-btn active" id="bt-road" onclick="setBike('road')">
         <span class="bt-icon">🚴</span>
-        <div class="bt-name">Landevei</div>
-        <div class="bt-desc">Rask, aero</div>
+        <div class="bt-name" data-i18n="bf_bt_road">Landevei</div>
+        <div class="bt-desc" data-i18n="bf_bt_road_d">Rask, aero</div>
       </div>
       <div class="bt-btn" id="bt-gravel" onclick="setBike('gravel')">
         <span class="bt-icon">🛤️</span>
-        <div class="bt-name">Gravel</div>
-        <div class="bt-desc">Allround</div>
+        <div class="bt-name" data-i18n="bf_bt_gravel">Gravel</div>
+        <div class="bt-desc" data-i18n="bf_bt_gravel_d">Allround</div>
       </div>
       <div class="bt-btn" id="bt-mtb" onclick="setBike('mtb')">
         <span class="bt-icon">🏔️</span>
-        <div class="bt-name">MTB</div>
-        <div class="bt-desc">Terreng</div>
+        <div class="bt-name" data-i18n="bf_bt_mtb">MTB</div>
+        <div class="bt-desc" data-i18n="bf_bt_mtb_d">Terreng</div>
       </div>
       <div class="bt-btn" id="bt-city" onclick="setBike('city')">
         <span class="bt-icon">🏙️</span>
-        <div class="bt-name">By/Hybrid</div>
-        <div class="bt-desc">Daglig</div>
+        <div class="bt-name" data-i18n="bf_bt_city">By/Hybrid</div>
+        <div class="bt-desc" data-i18n="bf_bt_city_d">Daglig</div>
       </div>
       <div class="bt-btn" id="bt-tt" onclick="setBike('tt')">
         <span class="bt-icon">⏱️</span>
-        <div class="bt-name">TT/Tri</div>
-        <div class="bt-desc">Maks aero</div>
+        <div class="bt-name" data-i18n="bf_bt_tt">TT/Tri</div>
+        <div class="bt-desc" data-i18n="bf_bt_tt_d">Maks aero</div>
       </div>
     </div>
   </div>
 
   <!-- 3. Riding position -->
   <div class="card">
-    <div class="card-title">🎚️ Kjørestil og posisjon</div>
+    <div class="card-title" data-i18n="bf_style_title">🎚️ Kjørestil og posisjon</div>
     <div class="pos-labels">
-      <span class="pos-label" style="text-align:left">🏁 Aggressiv<br><small>Race</small></span>
-      <span class="pos-label">⚡ Sport<br><small>Balansert</small></span>
-      <span class="pos-label">🌿 Komfort<br><small>Avslappet</small></span>
-      <span class="pos-label" style="text-align:right">🛋️ Oppreist<br><small>Touring</small></span>
+      <span class="pos-label" style="text-align:left"><span data-i18n="bf_pos0">🏁 Aggressiv</span><br><small data-i18n="bf_pos0s">Race</small></span>
+      <span class="pos-label"><span data-i18n="bf_pos1">⚡ Sport</span><br><small data-i18n="bf_pos1s">Balansert</small></span>
+      <span class="pos-label"><span data-i18n="bf_pos2">🌿 Komfort</span><br><small data-i18n="bf_pos2s">Avslappet</small></span>
+      <span class="pos-label" style="text-align:right"><span data-i18n="bf_pos3">🛋️ Oppreist</span><br><small data-i18n="bf_pos3s">Touring</small></span>
     </div>
     <input type="range" id="pos-slider" min="0" max="3" step="1" value="1" oninput="updatePosPreview()">
     <div class="pos-preview" id="pos-preview">⚡ Sport — Balansert mellom ytelse og komfort</div>
@@ -323,21 +328,21 @@ input[type=range]::-webkit-slider-thumb {
 
   <!-- 4a. Photo analysis (optional) -->
   <div class="card" id="photo-card">
-    <div class="card-title">📸 Mål kropp fra bilde <span class="photo-badge">AI</span></div>
-    <p class="photo-intro">
+    <div class="card-title" data-i18n="bf_photo_title">📸 Mål kropp fra bilde <span class="photo-badge">AI</span></div>
+    <p class="photo-intro" data-i18n="bf_photo_intro">
       Last opp et bilde av deg selv, oppgi høyde, og AI-en beregner inseam, overkropp, armlengde og skulderbredde automatisk.
       Verdiene fylles direkte inn i skjemaet under.
     </p>
     <div class="photo-tips">
-      <span class="photo-tip">🧍 Hel kropp synlig</span>
-      <span class="photo-tip">👀 Forsiden mot kamera</span>
-      <span class="photo-tip">💡 Godt lys, jevn bakgrunn</span>
-      <span class="photo-tip">👐 Armer langs siden</span>
-      <span class="photo-tip">👟 Stå rett og oppreist</span>
+      <span class="photo-tip" data-i18n="bf_tip1">🧍 Hel kropp synlig</span>
+      <span class="photo-tip" data-i18n="bf_tip2">👀 Forsiden mot kamera</span>
+      <span class="photo-tip" data-i18n="bf_tip3">💡 Godt lys, jevn bakgrunn</span>
+      <span class="photo-tip" data-i18n="bf_tip4">👐 Armer langs siden</span>
+      <span class="photo-tip" data-i18n="bf_tip5">👟 Stå rett og oppreist</span>
     </div>
     <div class="photo-row">
       <div class="inp-group">
-        <label>Din høyde</label>
+        <label data-i18n="bf_your_height">Din høyde</label>
         <div class="inp-wrap">
           <input type="number" id="photo-height" placeholder="180" min="140" max="220">
           <span class="inp-unit">cm</span>
@@ -346,7 +351,7 @@ input[type=range]::-webkit-slider-thumb {
       <div class="inp-group">
         <label style="visibility:hidden">Last opp</label>
         <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)">
-        <button class="upload-btn" onclick="document.getElementById('photo-input').click()">📷 Last opp bilde</button>
+        <button class="upload-btn" onclick="document.getElementById('photo-input').click()" data-i18n="bf_upload_btn">📷 Last opp bilde</button>
       </div>
     </div>
 
@@ -358,24 +363,24 @@ input[type=range]::-webkit-slider-thumb {
 
       <div id="detected-results" style="display:none">
         <div class="detected-grid" id="detected-grid"></div>
-        <button class="use-meas-btn" onclick="applyPhotoMeasurements()">
+        <button class="use-meas-btn" onclick="applyPhotoMeasurements()" data-i18n="bf_use_meas">
           ✅ Bruk disse målene — fyll inn skjema automatisk
         </button>
-        <p class="photo-note">⚠️ AI-estimater — sjekk og juster gjerne verdiene manuelt i skjemaet under.</p>
+        <p class="photo-note" data-i18n="bf_photo_note">⚠️ AI-estimater — sjekk og juster gjerne verdiene manuelt i skjemaet under.</p>
       </div>
     </div>
   </div>
 
   <!-- 4. Measurements -->
   <div class="card">
-    <div class="card-title">📏 Kroppsmål</div>
+    <div class="card-title" data-i18n="bf_meas_title">📏 Kroppsmål</div>
 
     <div id="inputs-simple">
       <div class="input-grid">
         <div class="inp-group">
-          <label>Høyde <button class="help-btn" onclick="showGuide('height')">?</button></label>
+          <label><span data-i18n="bf_height">Høyde</span> <button class="help-btn" onclick="showGuide('height')">?</button></label>
           <div class="inp-wrap"><input type="number" id="h1" placeholder="180" min="140" max="220"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Total kroppshøyde uten sko</span>
+          <span class="inp-hint" data-i18n="bf_height_hint">Total kroppshøyde uten sko</span>
         </div>
       </div>
     </div>
@@ -383,50 +388,50 @@ input[type=range]::-webkit-slider-thumb {
     <div id="inputs-advanced" style="display:none">
       <div class="input-grid">
         <div class="inp-group">
-          <label>Høyde <button class="help-btn" onclick="showGuide('height')">?</button></label>
+          <label><span data-i18n="bf_height">Høyde</span> <button class="help-btn" onclick="showGuide('height')">?</button></label>
           <div class="inp-wrap"><input type="number" id="h2" placeholder="180" min="140" max="220"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Total kroppshøyde uten sko</span>
+          <span class="inp-hint" data-i18n="bf_height_hint">Total kroppshøyde uten sko</span>
         </div>
         <div class="inp-group">
-          <label>Skritthøyde <button class="help-btn" onclick="showGuide('inseam')">?</button></label>
+          <label><span data-i18n="bf_inseam">Skritthøyde</span> <button class="help-btn" onclick="showGuide('inseam')">?</button></label>
           <div class="inp-wrap"><input type="number" id="inseam" placeholder="83" min="60" max="115"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Fra gulv til lyske (med bok)</span>
+          <span class="inp-hint" data-i18n="bf_inseam_hint">Fra gulv til lyske (med bok)</span>
         </div>
         <div class="inp-group">
-          <label>Armspenn <button class="help-btn" onclick="showGuide('armspan')">?</button></label>
+          <label><span data-i18n="bf_armspan">Armspenn</span> <button class="help-btn" onclick="showGuide('armspan')">?</button></label>
           <div class="inp-wrap"><input type="number" id="armspan" placeholder="182" min="130" max="235"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Fingertipp til fingertipp</span>
+          <span class="inp-hint" data-i18n="bf_armspan_hint">Fingertipp til fingertipp</span>
         </div>
         <div class="inp-group">
-          <label>Overkropp <button class="help-btn" onclick="showGuide('torso')">?</button></label>
+          <label><span data-i18n="bf_torso">Overkropp</span> <button class="help-btn" onclick="showGuide('torso')">?</button></label>
           <div class="inp-wrap"><input type="number" id="torso" placeholder="60" min="40" max="85"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Fra lyske til skulder</span>
+          <span class="inp-hint" data-i18n="bf_torso_hint">Fra lyske til skulder</span>
         </div>
         <div class="inp-group">
-          <label>Armlengde <button class="help-btn" onclick="showGuide('arm')">?</button></label>
+          <label><span data-i18n="bf_armlen">Armlengde</span> <button class="help-btn" onclick="showGuide('arm')">?</button></label>
           <div class="inp-wrap"><input type="number" id="armlen" placeholder="62" min="40" max="90"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Fra skulder til håndledd</span>
+          <span class="inp-hint" data-i18n="bf_armlen_hint">Fra skulder til håndledd</span>
         </div>
         <div class="inp-group">
-          <label>Skulderbredde <button class="help-btn" onclick="showGuide('shoulder')">?</button></label>
+          <label><span data-i18n="bf_shoulder">Skulderbredde</span> <button class="help-btn" onclick="showGuide('shoulder')">?</button></label>
           <div class="inp-wrap"><input type="number" id="shoulder" placeholder="42" min="28" max="62"><span class="inp-unit">cm</span></div>
-          <span class="inp-hint">Skulder til skulder (ben)</span>
+          <span class="inp-hint" data-i18n="bf_shoulder_hint">Skulder til skulder (ben)</span>
         </div>
       </div>
     </div>
 
-    <button class="calc-btn" onclick="calculate()">📐 Beregn min sykkelfit</button>
+    <button class="calc-btn" onclick="calculate()" data-i18n="bf_calc_btn">📐 Beregn min sykkelfit</button>
   </div>
 
   <!-- 5. Results -->
   <div class="results-section" id="results">
 
     <div class="viz-card">
-      <div class="card-title" style="margin-bottom:10px">🚴 Din sykkelposisjon</div>
+      <div class="card-title" style="margin-bottom:10px" data-i18n="bf_viz_title">🚴 Din sykkelposisjon</div>
       <svg class="viz-svg" viewBox="0 0 760 490" id="bike-svg" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
 
-    <div class="card-title" style="margin: 4px 4px 12px;">📊 Anbefalte mål</div>
+    <div class="card-title" style="margin: 4px 4px 12px;" data-i18n="bf_res_title">📊 Anbefalte mål</div>
     <div class="results-grid" id="res-grid"></div>
 
     <div class="card rec-list" id="recs">
@@ -443,7 +448,7 @@ input[type=range]::-webkit-slider-thumb {
     <div class="modal-sub" id="modal-sub"></div>
     <svg id="modal-svg" width="220" height="200" style="display:block;margin:0 auto 14px" xmlns="http://www.w3.org/2000/svg"></svg>
     <p id="modal-text"></p>
-    <button class="modal-close" onclick="closeGuide()">Lukk</button>
+    <button class="modal-close" onclick="closeGuide()" data-i18n="bf_modal_close">Lukk</button>
   </div>
 </div>
 
@@ -451,12 +456,14 @@ input[type=range]::-webkit-slider-thumb {
 // ===== STATE =====
 let mode = 'simple', bikeType = 'road', position = 1;
 
-const posInfo = [
-  { short: '🏁 Aggressiv', long: 'Race/Aero — Lav og lang, maksimal effektivitet' },
-  { short: '⚡ Sport',     long: 'Balansert mellom ytelse og komfort' },
-  { short: '🌿 Komfort',   long: 'Avslappet posisjon — passer lengre turer' },
-  { short: '🛋️ Oppreist', long: 'Touring/by — maksimal komfort og sikt' }
-];
+function getPosInfo() {
+  return [
+    { short: t('bf_pos0'), long: t('bf_pos0_long') },
+    { short: t('bf_pos1'), long: t('bf_pos1_long') },
+    { short: t('bf_pos2'), long: t('bf_pos2_long') },
+    { short: t('bf_pos3'), long: t('bf_pos3_long') },
+  ];
+}
 
 // ===== UI CONTROLS =====
 function setMode(m) {
@@ -474,15 +481,15 @@ function setBike(t) {
 
 function updatePosPreview() {
   position = parseInt(document.getElementById('pos-slider').value);
-  document.getElementById('pos-preview').textContent = posInfo[position].long;
+  document.getElementById('pos-preview').textContent = getPosInfo()[position].long;
 }
 
 // ===== GUIDES =====
 const guides = {
   height: {
-    title: 'Mål høyde',
-    sub: 'Uten sko, stående rett',
-    text: 'Stå rett mot en vegg uten sko. Legg en bok flatt på toppen av hodet og merk av på veggen. Mål fra gulv til merket.',
+    get title() { return t('bf_guide_height_title'); },
+    get sub()   { return t('bf_guide_height_sub'); },
+    get text()  { return t('bf_guide_height_text'); },
     draw(s) {
       s.innerHTML = `
         <circle cx="110" cy="28" r="14" fill="#2196F3"/>
@@ -501,9 +508,9 @@ const guides = {
     }
   },
   inseam: {
-    title: 'Mål skritthøyde',
-    sub: 'Inseam — fra gulv til lyske',
-    text: 'Stå uten sko mot en vegg. Trykk en bok hardt opp i skrittet (som en sykkelsadel). Mål fra gulv til overkant av boken. Ta 2–3 målinger og bruk gjennomsnittet.',
+    get title() { return t('bf_guide_inseam_title'); },
+    get sub()   { return t('bf_guide_inseam_sub'); },
+    get text()  { return t('bf_guide_inseam_text'); },
     draw(s) {
       s.innerHTML = `
         <circle cx="110" cy="28" r="14" fill="#2196F3"/>
@@ -523,9 +530,9 @@ const guides = {
     }
   },
   armspan: {
-    title: 'Mål armspenn',
-    sub: 'Fingertipp til fingertipp',
-    text: 'Stå med ryggen mot veggen. Strekk begge armene rett ut til siden i skulderhøyde. Mål fra fingertipp til fingertipp.',
+    get title() { return t('bf_guide_armspan_title'); },
+    get sub()   { return t('bf_guide_armspan_sub'); },
+    get text()  { return t('bf_guide_armspan_text'); },
     draw(s) {
       s.innerHTML = `
         <circle cx="110" cy="60" r="14" fill="#2196F3"/>
@@ -542,9 +549,9 @@ const guides = {
     }
   },
   torso: {
-    title: 'Mål overkroppslengde',
-    sub: 'Fra lyske til skulder',
-    text: 'Sett deg på en stol med rett rygg. Mål fra der du sitter (hoften/lysken) opp til toppen av skulderen. Alternativt: høyde − skritthøyde = ca. overkropp.',
+    get title() { return t('bf_guide_torso_title'); },
+    get sub()   { return t('bf_guide_torso_sub'); },
+    get text()  { return t('bf_guide_torso_text'); },
     draw(s) {
       s.innerHTML = `
         <circle cx="110" cy="32" r="14" fill="#2196F3"/>
@@ -560,9 +567,9 @@ const guides = {
     }
   },
   arm: {
-    title: 'Mål armlengde',
-    sub: 'Fra skulder til håndledd',
-    text: 'Strekk armen rett ut. Mål fra skulderleddet (det harde benypunktet på utsiden) til håndleddet. Alternativt: (armspenn − skulderbredde) / 2.',
+    get title() { return t('bf_guide_arm_title'); },
+    get sub()   { return t('bf_guide_arm_sub'); },
+    get text()  { return t('bf_guide_arm_text'); },
     draw(s) {
       s.innerHTML = `
         <circle cx="55" cy="80" r="14" fill="#2196F3"/>
@@ -579,9 +586,9 @@ const guides = {
     }
   },
   shoulder: {
-    title: 'Mål skulderbredde',
-    sub: 'Biacromial — ben til ben',
-    text: 'Mål mellom de ytterste benpunktene på skuldrene (acromion — det harde punktet du kjenner på utsiden av skulderen, ikke muskelen). Vanligvis 36–48 cm.',
+    get title() { return t('bf_guide_shoulder_title'); },
+    get sub()   { return t('bf_guide_shoulder_sub'); },
+    get text()  { return t('bf_guide_shoulder_text'); },
     draw(s) {
       s.innerHTML = `
         <circle cx="110" cy="58" r="14" fill="#2196F3"/>
@@ -613,11 +620,11 @@ function closeGuide() { document.getElementById('modal').classList.remove('show'
 
 // ===== BIKE CONFIG =====
 const bikeConf = {
-  road:   { name: 'Landevei',  stackMod: 1.00, reachMod: 1.00, saddleMod: 1.000, setbackMod: 0,   barType: 'drop' },
-  gravel: { name: 'Gravel',    stackMod: 1.04, reachMod: 0.96, saddleMod: 1.000, setbackMod: 5,   barType: 'drop' },
-  mtb:    { name: 'MTB',       stackMod: 1.06, reachMod: 0.88, saddleMod: 0.980, setbackMod: -10, barType: 'flat' },
-  city:   { name: 'By/Hybrid', stackMod: 1.12, reachMod: 0.80, saddleMod: 0.960, setbackMod: 10,  barType: 'flat' },
-  tt:     { name: 'TT/Tri',    stackMod: 0.94, reachMod: 1.12, saddleMod: 1.010, setbackMod: -20, barType: 'aero' }
+  road:   { get name() { return t('bf_bt_road');   }, stackMod: 1.00, reachMod: 1.00, saddleMod: 1.000, setbackMod: 0,   barType: 'drop' },
+  gravel: { get name() { return t('bf_bt_gravel'); }, stackMod: 1.04, reachMod: 0.96, saddleMod: 1.000, setbackMod: 5,   barType: 'drop' },
+  mtb:    { get name() { return t('bf_bt_mtb');    }, stackMod: 1.06, reachMod: 0.88, saddleMod: 0.980, setbackMod: -10, barType: 'flat' },
+  city:   { get name() { return t('bf_bt_city');   }, stackMod: 1.12, reachMod: 0.80, saddleMod: 0.960, setbackMod: 10,  barType: 'flat' },
+  tt:     { get name() { return t('bf_bt_tt');     }, stackMod: 0.94, reachMod: 1.12, saddleMod: 1.010, setbackMod: -20, barType: 'aero' }
 };
 
 // ===== CALCULATIONS =====
@@ -739,102 +746,100 @@ function renderResults(r) {
   document.getElementById('res-grid').innerHTML = `
     <div class="res-item">
       <div class="res-val">${r.saddleH}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Sadelhøyde (BB→sadel)</div>
+      <div class="res-lbl">${t('bf_lbl_saddle')}</div>
     </div>
     <div class="res-item">
       <div class="res-val">${r.crank}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Krankarmlengde</div>
+      <div class="res-lbl">${t('bf_lbl_crank')}</div>
     </div>
     <div class="res-item">
       <div class="res-val">${r.hbw}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Styrebredde</div>
+      <div class="res-lbl">${t('bf_lbl_hbw')}</div>
     </div>
     <div class="res-item">
       <div class="res-val">${r.reach}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Reach</div>
+      <div class="res-lbl">${t('bf_lbl_reach')}</div>
     </div>
     <div class="res-item">
       <div class="res-val">${r.stack}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Stack</div>
+      <div class="res-lbl">${t('bf_lbl_stack')}</div>
     </div>
     <div class="res-item">
       <div class="res-val">${dropStr}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Styre vs. sadel</div>
+      <div class="res-lbl">${t('bf_lbl_drop')}</div>
     </div>
     <div class="res-item">
       <div class="res-val">${r.setback}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Sadelsetback</div>
+      <div class="res-lbl">${t('bf_lbl_setback')}</div>
     </div>
     <div class="res-item">
       <div class="res-val">${r.stem}<span class="res-unit"> mm</span></div>
-      <div class="res-lbl">Styrestamme</div>
+      <div class="res-lbl">${t('bf_lbl_stem')}</div>
     </div>
     <div class="res-item" style="grid-column:span 2">
       <div class="res-val" style="font-size:18px">${r.fs}</div>
-      <div class="res-lbl">Rammestørrelse (estimat)</div>
+      <div class="res-lbl">${t('bf_lbl_frame')}</div>
     </div>
   `;
 
   // Recommendations
   const barRelStr = r.barDrop >= 0
-    ? `${r.barDrop} mm under sadelen`
-    : `${Math.abs(r.barDrop)} mm over sadelen`;
+    ? t('bf_bar_under').replace('{v}', r.barDrop)
+    : t('bf_bar_over').replace('{v}', Math.abs(r.barDrop));
+
+  const posShort = getPosInfo()[position].short;
 
   document.getElementById('recs').innerHTML = `
-    <div class="card-title">💡 Anbefalinger</div>
+    <div class="card-title">${t('bf_recs_title')}</div>
     <div class="rec-item">
       <div class="rec-icon">🎯</div>
       <div class="rec-content">
-        <h4>Sadelhøyde: ${r.saddleH} mm</h4>
-        <p>Mål fra midten av tråkkakselen (BB) til toppen av setet. Kneet skal ha 145–155° bøy ved bunnen av pedalsyklusen. Juster i 3 mm-skritt og gi kroppen noen turer mellom hver endring.</p>
+        <h4>${t('bf_rec_saddle_h').replace('{v}', r.saddleH)}</h4>
+        <p>${t('bf_rec_saddle_p')}</p>
       </div>
     </div>
     <div class="rec-item">
       <div class="rec-icon">⚖️</div>
       <div class="rec-content">
-        <h4>Sadelsetback: ${r.setback} mm bak BB</h4>
-        <p>Med pedalene vannrett skal midten av kneet peke rett ned over pedalaksen (KOPS-metoden). Bruk en loddsnor fra kneleddet for å sjekke. Sadelskinner gir typisk 20–30 mm justeringsrom.</p>
+        <h4>${t('bf_rec_setback_h').replace('{v}', r.setback)}</h4>
+        <p>${t('bf_rec_setback_p')}</p>
       </div>
     </div>
     <div class="rec-item">
       <div class="rec-icon">🔩</div>
       <div class="rec-content">
-        <h4>Krankarmlengde: ${r.crank} mm</h4>
-        <p>Basert på skritthøyden din. Kortere krankarmer gir jevnere pedalslag og reduserer hoftebelastning — spesielt gunstig for ${bikeType === 'mtb' ? 'MTB og terrengkjøring' : 'landeveiskjøring og høy kadens'}.</p>
+        <h4>${t('bf_rec_crank_h').replace('{v}', r.crank)}</h4>
+        <p>${bikeType === 'mtb' ? t('bf_rec_crank_p_mtb') : t('bf_rec_crank_p_road')}</p>
       </div>
     </div>
     <div class="rec-item">
       <div class="rec-icon">📏</div>
       <div class="rec-content">
-        <h4>Styrebredde: ${r.hbw} mm</h4>
-        <p>${bikeType === 'road' || bikeType === 'tt'
-          ? 'For drop-styre: match skulderbredden (biacromial). Smalere gir bedre aerodynamikk, bredere øker stabiliteten.'
-          : bikeType === 'mtb'
-          ? 'Bredere styre gir bedre kontroll i terreng. Klipp til ønsket bredde — start bredt og kutt til du finner komfortzonen.'
-          : 'Match skulderbredden pluss ~10 cm for god komfort og kontroll.'}</p>
+        <h4>${t('bf_rec_hbw_h').replace('{v}', r.hbw)}</h4>
+        <p>${bikeType === 'road' || bikeType === 'tt' ? t('bf_rec_hbw_p_road') : bikeType === 'mtb' ? t('bf_rec_hbw_p_mtb') : t('bf_rec_hbw_p_other')}</p>
       </div>
     </div>
     <div class="rec-item">
       <div class="rec-icon">📐</div>
       <div class="rec-content">
-        <h4>Stack/Reach: ${r.stack}/${r.reach} mm</h4>
-        <p>Disse er rammegeometrimålene. Sammenlign med produsentenes geometritabeller for å finne riktig ramme. Styrestammelengde (≈${r.stem} mm) og høyde på stigerøret finjusterer posisjonen.</p>
+        <h4>${t('bf_rec_stack_h').replace('{stack}', r.stack).replace('{reach}', r.reach)}</h4>
+        <p>${t('bf_rec_stack_p').replace('{stem}', r.stem)}</p>
       </div>
     </div>
     <div class="rec-item">
       <div class="rec-icon">📊</div>
       <div class="rec-content">
-        <h4>Styret er ${barRelStr}</h4>
+        <h4>${r.barDrop >= 0 ? t('bf_rec_drop_h_pos').replace('{v}', r.barDrop) : t('bf_rec_drop_h_neg').replace('{v}', Math.abs(r.barDrop))}</h4>
         <p>${r.barDrop >= 0
-          ? `${posInfo[position].short}-posisjon gir dette droppet. Bruk spacers under styrestammen for å heve styret, eller juster stammevinkel.`
-          : `Styret er høyere enn sadelen — typisk for komfort- og byposisjon.`}</p>
+          ? t('bf_rec_drop_p_pos').replace('{pos}', posShort)
+          : t('bf_rec_drop_p_neg')}</p>
       </div>
     </div>
     <div class="rec-item">
       <div class="rec-icon">⚠️</div>
       <div class="rec-content">
-        <h4>Test og juster gradvis</h4>
-        <p>Disse verdiene er et solid utgangspunkt. Gjør én endring av gangen — vent 2–3 turer før neste. Vedvarende smerter i kne, rygg eller nakke? Oppsøk en profesjonell bikefitter.</p>
+        <h4>${t('bf_rec_adjust_h')}</h4>
+        <p>${t('bf_rec_adjust_p')}</p>
       </div>
     </div>
   `;
@@ -1061,13 +1066,16 @@ function drawBike(r) {
 
     <!-- Footer label -->
     <text x="380" y="480" fill="#90a4ae" font-size="12" text-anchor="middle">
-      ${bikeConf[bikeType].name} — ${posInfo[position].short.replace(/[^\w\s\-]/g, '').trim()}
+      ${bikeConf[bikeType].name} — ${getPosInfo()[position].short.replace(/[^\w\s\u{1F000}-\u{1FFFF}]/gu, '').trim()}
     </text>
   `;
 }
 
 // Init
 updatePosPreview();
+
+// Re-render dynamic content on language change
+function onLangChange() { updatePosPreview(); }
 
 // ===== PHOTO / POSE DETECTION =====
 let poseDetector = null;
@@ -1413,18 +1421,18 @@ function drawHMeasure(ctx, x1, x2, y, color, label) {
 // ---- Display detected measurements ----
 function confLabel(score) {
   if (!score) return '';
-  if (score > 0.7) return '🟢 Høy sikkerhet';
-  if (score > 0.4) return '🟡 Middels sikkerhet';
-  return '🔴 Lav sikkerhet';
+  if (score > 0.7) return t('bf_conf_high');
+  if (score > 0.4) return t('bf_conf_med');
+  return t('bf_conf_low');
 }
 
 function renderDetectedMeasurements(m) {
   const items = [
-    { key: 'inseam',       label: 'Skritthøyde', conf: m.inseamConf,    warn: m.inseamWarn },
-    { key: 'torso',        label: 'Overkropp',   conf: m.torsoConf,     warn: m.torsoWarn  },
-    { key: 'shoulderWidth',label: 'Skulderbredde',conf: m.shoulderConf, warn: false        },
-    { key: 'armLength',    label: 'Armlengde',   conf: m.armConf,       warn: m.armWarn    },
-    { key: 'armspan',      label: 'Armspenn',    conf: m.armConf,       warn: false        },
+    { key: 'inseam',       label: t('bf_det_inseam'),   conf: m.inseamConf,   warn: m.inseamWarn },
+    { key: 'torso',        label: t('bf_det_torso'),    conf: m.torsoConf,    warn: m.torsoWarn  },
+    { key: 'shoulderWidth',label: t('bf_det_shoulder'), conf: m.shoulderConf, warn: false        },
+    { key: 'armLength',    label: t('bf_det_arm'),      conf: m.armConf,      warn: m.armWarn    },
+    { key: 'armspan',      label: t('bf_det_armspan'),  conf: m.armConf,      warn: false        },
   ];
 
   document.getElementById('detected-grid').innerHTML = items

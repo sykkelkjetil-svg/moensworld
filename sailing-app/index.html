@@ -6,6 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Sailing Instrument</title>
+  <script src="/lang.js"></script>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -417,8 +418,12 @@
     <span class="header-title">⛵ Sailing Instrument</span>
     <span class="header-gps">
       <span class="gps-dot" id="gps-dot"></span>
-      <span id="gps-status-text">Venter på GPS…</span>
+      <span id="gps-status-text" data-i18n="sail_gps_wait">Venter på GPS…</span>
     </span>
+    <div class="lang-sw" style="margin-left:auto;">
+      <button data-lang-btn="no" onclick="setLang('no')">🇳🇴</button>
+      <button data-lang-btn="en" onclick="setLang('en')">🇬🇧</button>
+    </div>
   </div>
 
   <!-- ===================== CONTENT ===================== -->
@@ -429,8 +434,8 @@
 
       <!-- Compass permission banner (iOS) -->
       <div id="compass-banner">
-        <span>📱 Aktiver kompass for heading</span>
-        <button onclick="requestCompassPermission()">Aktiver</button>
+        <span data-i18n="sail_compass_txt">📱 Aktiver kompass for heading</span>
+        <button onclick="requestCompassPermission()" data-i18n="sail_compass_btn">Aktiver</button>
       </div>
 
       <!-- Compass rose + waypoint info -->
@@ -479,7 +484,7 @@
             </div>
           </div>
           <div class="wp-info" id="wp-info-label">
-            <div class="wp-label" style="color:var(--muted)">🏳 Ingen aktiv waypoint</div>
+            <div class="wp-label" style="color:var(--muted)" data-i18n="sail_no_wp">🏳 Ingen aktiv waypoint</div>
           </div>
         </div>
       </div>
@@ -492,7 +497,7 @@
             SOG
           </div>
           <div class="inst-value" id="val-sog">—</div>
-          <div class="inst-sub">knop</div>
+          <div class="inst-sub" data-i18n="sail_sog_sub">knop</div>
         </div>
         <div class="instrument-card">
           <div class="inst-label">
@@ -500,7 +505,7 @@
             COG
           </div>
           <div class="inst-value" id="val-cog">—</div>
-          <div class="inst-sub">grader</div>
+          <div class="inst-sub" data-i18n="sail_cog_sub">grader</div>
         </div>
         <div class="instrument-card">
           <div class="inst-label">
@@ -508,7 +513,7 @@
             HDG
           </div>
           <div class="inst-value" id="val-hdg">—</div>
-          <div class="inst-sub" id="sub-hdg">kompass</div>
+          <div class="inst-sub" id="sub-hdg" data-i18n="sail_hdg_sub">kompass</div>
         </div>
         <div class="instrument-card highlight" id="card-vmg">
           <div class="inst-label">
@@ -516,7 +521,7 @@
             VMG
           </div>
           <div class="inst-value" id="val-vmg">—</div>
-          <div class="inst-sub">mot mål</div>
+          <div class="inst-sub" data-i18n="sail_vmg_sub">mot mål</div>
         </div>
       </div>
 
@@ -530,7 +535,7 @@
               BRG
             </div>
             <div class="inst-value" id="val-brg">—</div>
-            <div class="inst-sub">bearing til mål</div>
+            <div class="inst-sub" data-i18n="sail_brg_sub">bearing til mål</div>
           </div>
           <div class="instrument-card">
             <div class="inst-label">
@@ -538,7 +543,7 @@
               DTW
             </div>
             <div class="inst-value" id="val-dtw">—</div>
-            <div class="inst-sub">avstand</div>
+            <div class="inst-sub" data-i18n="sail_dtw_sub">avstand</div>
           </div>
         </div>
       </div>
@@ -549,7 +554,7 @@
     <!-- ── MAP ── -->
     <div id="panel-map" class="tab-panel">
       <div id="map"></div>
-      <div class="map-hint">Hold inne på kartet for å legge til waypoint</div>
+      <div class="map-hint" data-i18n="sail_map_hint">Hold inne på kartet for å legge til waypoint</div>
       <div class="map-controls">
         <button class="map-btn" onclick="centerOnUser()" title="Sentrér på posisjon">📍</button>
       </div>
@@ -557,9 +562,9 @@
 
     <!-- ── WAYPOINTS ── -->
     <div id="panel-waypoints" class="tab-panel">
-      <div class="panel-title">Waypoints</div>
+      <div class="panel-title" data-i18n="sail_wp_title">Waypoints</div>
       <div id="wp-list-container">
-        <div class="empty-state">Ingen waypoints ennå.<br>Hold inne på kartet for å legge til.</div>
+        <div class="empty-state" data-i18n-html="sail_wp_empty">Ingen waypoints ennå.<br>Hold inne på kartet for å legge til.</div>
       </div>
     </div>
 
@@ -571,21 +576,21 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
       </svg>
-      Instrumenter
+      <span data-i18n="sail_tab_dash">Instrumenter</span>
     </button>
     <button class="tab-btn" onclick="switchTab('map',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
         <line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
       </svg>
-      Kart
+      <span data-i18n="sail_tab_map">Kart</span>
     </button>
     <button class="tab-btn" onclick="switchTab('waypoints',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/>
         <circle cx="12" cy="10" r="3"/>
       </svg>
-      Waypoints
+      <span data-i18n="sail_tab_wp">Waypoints</span>
     </button>
   </div>
 </div><!-- /app -->
@@ -593,12 +598,12 @@
 <!-- ===================== ADD WAYPOINT MODAL ===================== -->
 <div class="modal-overlay hidden" id="modal-add-wp">
   <div class="modal-sheet">
-    <div class="modal-title">Nytt waypoint</div>
+    <div class="modal-title" data-i18n="sail_modal_title">Nytt waypoint</div>
     <div class="modal-coords" id="modal-coords-text"></div>
-    <input class="modal-input" id="modal-wp-name" type="text" placeholder="Navn (f.eks. Merke 1)" maxlength="30" />
+    <input class="modal-input" id="modal-wp-name" type="text" data-i18n-ph="sail_wp_name_ph" placeholder="Navn (f.eks. Merke 1)" maxlength="30" />
     <div class="modal-buttons">
-      <button class="btn-secondary" onclick="closeModal()">Avbryt</button>
-      <button class="btn-primary" onclick="confirmAddWaypoint()">Legg til</button>
+      <button class="btn-secondary" onclick="closeModal()" data-i18n="sail_cancel">Avbryt</button>
+      <button class="btn-primary" onclick="confirmAddWaypoint()" data-i18n="sail_add">Legg til</button>
     </div>
   </div>
 </div>
@@ -633,6 +638,12 @@ function loadWaypoints() {
     if (d) state.waypoints = JSON.parse(d);
     state.activeWpId = localStorage.getItem('sailing_active_wp') || null;
   } catch(e) {}
+}
+
+/* Re-render dynamic content on language change */
+function onLangChange() {
+  renderWaypointList();
+  updateDashboard();
 }
 
 /* ==============================================================
@@ -804,6 +815,7 @@ function updateDashboard() {
     document.getElementById('wp-info-label').innerHTML =
       `<div class="wp-label">🏁 ${wp.name}</div>`;
 
+
     // Bearing marker on compass
     document.getElementById('bearing-marker').style.display = '';
     document.getElementById('bearing-marker').setAttribute('transform', `rotate(${brg}, 55, 55)`);
@@ -815,7 +827,7 @@ function updateDashboard() {
     document.getElementById('val-dtw').textContent = '—';
     document.getElementById('wp-instruments').style.display = 'none';
     document.getElementById('wp-info-label').innerHTML =
-      `<div class="wp-label" style="color:var(--muted)">🏳 Ingen aktiv waypoint</div>`;
+      `<div class="wp-label" style="color:var(--muted)">${t('sail_no_wp')}</div>`;
     document.getElementById('bearing-marker').style.display = 'none';
     document.getElementById('bearing-legend').style.display = 'none';
   }
@@ -921,7 +933,7 @@ function addWaypointMarker(wp) {
     <span style="font-size:11px;color:#999">${wp.lat.toFixed(4)}°N, ${wp.lon.toFixed(4)}°Ø</span><br>
     <button onclick="toggleActive('${wp.id}')" style="margin-top:6px;padding:4px 10px;
       background:${active ? '#ffd700' : '#0af'};color:#000;border:none;border-radius:6px;
-      font-weight:700;font-size:12px;cursor:pointer">${active ? 'Deaktiver' : 'Velg som mål'}</button>
+      font-weight:700;font-size:12px;cursor:pointer">${active ? t('sail_wp_deactivate') : t('sail_wp_set_target')}</button>
   `, { maxWidth: 200 });
   _waypointMarkers[wp.id] = marker;
 }
@@ -1004,7 +1016,7 @@ function deleteWaypoint(id) {
 function renderWaypointList() {
   const container = document.getElementById('wp-list-container');
   if (state.waypoints.length === 0) {
-    container.innerHTML = '<div class="empty-state">Ingen waypoints ennå.<br>Hold inne på kartet for å legge til.</div>';
+    container.innerHTML = `<div class="empty-state">${t('sail_wp_empty')}</div>`;
     return;
   }
   container.innerHTML = '<div class="wp-list">' +
@@ -1018,9 +1030,9 @@ function renderWaypointList() {
         </div>
         <div class="wp-actions">
           <button class="btn-small btn-select ${active ? 'selected' : ''}"
-            onclick="toggleActive('${wp.id}')">${active ? '★ Aktiv' : 'Velg'}</button>
+            onclick="toggleActive('${wp.id}')">${active ? t('sail_wp_active') : t('sail_wp_select')}</button>
           <button class="btn-small btn-delete"
-            onclick="deleteWaypoint('${wp.id}')">Slett</button>
+            onclick="deleteWaypoint('${wp.id}')">${t('sail_wp_delete')}</button>
         </div>
       </div>`;
     }).join('') + '</div>';

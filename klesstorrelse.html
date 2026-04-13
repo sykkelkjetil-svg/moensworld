@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Klesstørrelse</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js" crossorigin="anonymous"></script>
+  <script src="/lang.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -200,7 +201,11 @@
 <div id="app">
   <div class="header">
     <h1>👕 Klesstørrelse</h1>
-    <p>Estimer kroppsmål og klesstørrelser fra to bilder</p>
+    <p data-i18n="ks_subtitle">Estimer kroppsmål og klesstørrelser fra to bilder</p>
+    <div class="lang-sw" style="margin-top:12px;">
+      <button data-lang-btn="no" onclick="setLang('no')">🇳🇴 NO</button>
+      <button data-lang-btn="en" onclick="setLang('en')">🇬🇧 EN</button>
+    </div>
   </div>
 
   <!-- Progress -->
@@ -214,15 +219,15 @@
   <!-- ── Step 1: Height ───────────────────────────────────────────────────── -->
   <div id="step1" class="step active">
     <div class="card">
-      <h2>📏 Oppgi din høyde</h2>
-      <p class="hint">Brukes som absolutt referanse for å beregne alle mål i centimeter.</p>
+      <h2 data-i18n="ks_height_title">📏 Oppgi din høyde</h2>
+      <p class="hint" data-i18n="ks_height_hint">Brukes som absolutt referanse for å beregne alle mål i centimeter.</p>
       <div class="height-row">
         <input type="number" id="heightInput" value="175" min="100" max="220">
         <span class="unit-label">cm</span>
       </div>
-      <button class="btn" onclick="goToStep2()">Fortsett →</button>
+      <button class="btn" data-i18n="ks_continue" onclick="goToStep2()">Fortsett →</button>
     </div>
-    <div class="info-box">
+    <div class="info-box" data-i18n-html="ks_height_info">
       💡 Med to bilder beregnes omkretsene fra <strong>faktisk bredde og dybde</strong> ved hjelp av ellipseformelen — mye mer presist enn enkeltbilde.
     </div>
   </div>
@@ -230,55 +235,55 @@
   <!-- ── Step 2: Photos ───────────────────────────────────────────────────── -->
   <div id="step2" class="step">
     <div class="card">
-      <h2>📸 Last opp to bilder</h2>
-      <p class="hint">Et forfra og et fra siden — stå rett, hel kropp synlig, armene litt ut.</p>
+      <h2 data-i18n="ks_photo_title">📸 Last opp to bilder</h2>
+      <p class="hint" data-i18n="ks_photo_hint">Et forfra og et fra siden — stå rett, hel kropp synlig, armene litt ut.</p>
 
       <div class="photo-cols">
         <!-- Front photo -->
         <div class="photo-col" id="frontCol">
-          <h3>Forfra</h3>
-          <div id="frontCheckBadge" style="display:none;"><span class="check-badge">✓ Valgt</span></div>
+          <h3 data-i18n="ks_front_lbl">Forfra</h3>
+          <div id="frontCheckBadge" style="display:none;"><span class="check-badge" data-i18n="ks_selected">✓ Valgt</span></div>
           <div class="upload-area" id="frontUpload" onclick="document.getElementById('frontFile').click()">
             <div class="upload-icon">🧍</div>
-            <strong>Klikk eller slipp</strong>
-            <p>Stå rett mot kamera, full kropp</p>
+            <strong data-i18n="ks_click_drop">Klikk eller slipp</strong>
+            <p data-i18n="ks_front_sub">Stå rett mot kamera, full kropp</p>
           </div>
           <input type="file" class="file-input" id="frontFile" accept="image/*">
           <img class="preview-img" id="frontPreview" alt="Frontbilde">
 
           <ul class="tips-list">
-            <li>Forfra, rett opp og ned</li>
-            <li>Armene ~15 cm ut fra kroppen</li>
-            <li>Hode til føtter synlig</li>
-            <li>Tett- eller trettsittende klær</li>
+            <li data-i18n="ks_tip_straight">Forfra, rett opp og ned</li>
+            <li data-i18n="ks_tip_arms">Armene ~15 cm ut fra kroppen</li>
+            <li data-i18n="ks_tip_full">Hode til føtter synlig</li>
+            <li data-i18n="ks_tip_clothes">Tett- eller trettsittende klær</li>
           </ul>
         </div>
 
         <!-- Side photo -->
         <div class="photo-col" id="sideCol">
-          <h3>Fra siden</h3>
-          <div id="sideCheckBadge" style="display:none;"><span class="check-badge">✓ Valgt</span></div>
+          <h3 data-i18n="ks_side_lbl">Fra siden</h3>
+          <div id="sideCheckBadge" style="display:none;"><span class="check-badge" data-i18n="ks_selected">✓ Valgt</span></div>
           <div class="upload-area" id="sideUpload" onclick="document.getElementById('sideFile').click()">
             <div class="upload-icon">🚶</div>
-            <strong>Klikk eller slipp</strong>
-            <p>Stå 90° til kamera, full kropp</p>
+            <strong data-i18n="ks_click_drop">Klikk eller slipp</strong>
+            <p data-i18n="ks_side_sub">Stå 90° til kamera, full kropp</p>
           </div>
           <input type="file" class="file-input" id="sideFile" accept="image/*">
           <img class="preview-img" id="sidePreview" alt="Sidebilde">
 
           <ul class="tips-list">
-            <li>Profil mot kamera (90°)</li>
-            <li>Armene langs siden</li>
-            <li>Hode til føtter synlig</li>
-            <li>Ensfarget bakgrunn anbefales</li>
+            <li data-i18n="ks_side_tip1">Profil mot kamera (90°)</li>
+            <li data-i18n="ks_side_tip2">Armene langs siden</li>
+            <li data-i18n="ks_side_tip3">Hode til føtter synlig</li>
+            <li data-i18n="ks_side_tip4">Ensfarget bakgrunn anbefales</li>
           </ul>
         </div>
       </div>
     </div>
 
     <div class="btn-row">
-      <button class="btn btn-sec" onclick="goToStep1()">← Endre høyde</button>
-      <button class="btn" id="analyzeBtn" onclick="analyzePhotos()" disabled>Analyser →</button>
+      <button class="btn btn-sec" data-i18n="ks_back" onclick="goToStep1()">← Endre høyde</button>
+      <button class="btn" id="analyzeBtn" data-i18n="ks_analyze" onclick="analyzePhotos()" disabled>Analyser →</button>
     </div>
   </div>
 
@@ -293,39 +298,39 @@
   <!-- ── Step 4: Results ──────────────────────────────────────────────────── -->
   <div id="step4" class="step">
     <div class="card">
-      <h2>🎯 Analyse av bilder</h2>
+      <h2 data-i18n="ks_res_title">🎯 Analyse av bilder</h2>
       <div class="canvas-row">
         <div class="canvas-wrap">
-          <h4>Forfra — breddemål</h4>
+          <h4 data-i18n="ks_from_front">Forfra — breddemål</h4>
           <canvas id="frontCanvas"></canvas>
         </div>
         <div class="canvas-wrap">
-          <h4>Fra siden — dybdemål</h4>
+          <h4 data-i18n="ks_from_side">Fra siden — dybdemål</h4>
           <canvas id="sideCanvas"></canvas>
         </div>
       </div>
 
       <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div> Fremre bilde (bredde)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div> Sidebilde (dybde)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div> Kombinert (omkrets)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#60a5fa"></div> <span data-i18n="ks_legend_front">Fremre bilde (bredde)</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div> <span data-i18n="ks_legend_side">Sidebilde (dybde)</span></div>
+        <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div> <span data-i18n="ks_legend_comb">Kombinert (omkrets)</span></div>
       </div>
 
-      <p class="sec-label">Lengde og bredde (forfra)</p>
+      <p class="sec-label" data-i18n="ks_linear_sec">Lengde og bredde (forfra)</p>
       <div class="meas-grid" id="linearGrid"></div>
 
-      <p class="sec-label" style="margin-top:14px;">Dybdemål (fra siden)</p>
+      <p class="sec-label" data-i18n="ks_depth_sec" style="margin-top:14px;">Dybdemål (fra siden)</p>
       <div class="meas-grid" id="depthGrid"></div>
 
-      <p class="sec-label" style="margin-top:14px;">Beregnet omkrets</p>
+      <p class="sec-label" data-i18n="ks_circ_sec" style="margin-top:14px;">Beregnet omkrets</p>
       <div class="meas-grid" id="circGrid"></div>
     </div>
 
     <div class="card">
-      <h2>👕 Anbefalte størrelser</h2>
-      <p class="hint">Beregnet fra kombinerte bredde- og dybdemål.</p>
+      <h2 data-i18n="ks_sizes_title">👕 Anbefalte størrelser</h2>
+      <p class="hint" data-i18n="ks_sizes_hint">Beregnet fra kombinerte bredde- og dybdemål.</p>
       <div class="size-grid" id="sizeGrid"></div>
-      <div class="warning">
+      <div class="warning" data-i18n="ks_warning">
         ⚠️ Estimatene er beregnet fra 2D-bilder med brukerens høyde som eneste absolutte referanse.
         Sidebilde-dybden krever jevn bakgrunn for best nøyaktighet.
         Bekreft alltid med målebånd ved kjøp.
@@ -333,8 +338,8 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn btn-sec" onclick="goToStep2()">← Nye bilder</button>
-      <button class="btn btn-sec" onclick="goToStep1()">← Ny høyde</button>
+      <button class="btn btn-sec" data-i18n="ks_new_images" onclick="goToStep2()">← Nye bilder</button>
+      <button class="btn btn-sec" data-i18n="ks_new_height" onclick="goToStep1()">← Ny høyde</button>
     </div>
     <div id="errorBox" style="display:none; margin-top:16px;"></div>
   </div>
@@ -360,7 +365,7 @@
       el.className = 'progress-step' + (i < step ? ' done' : i === step ? ' active' : '');
     });
     document.getElementById('progLabel').textContent =
-      step < 4 ? `Steg ${step} av 3` : 'Ferdig';
+      step === 1 ? t('ks_prog1') : step === 2 ? t('ks_prog2') : step === 3 ? t('ks_prog3') : t('ks_done');
   }
 
   function goToStep1() { showStep(1); }
@@ -401,6 +406,16 @@
   setupUpload('frontFile', 'frontPreview', 'frontCol', 'frontCheckBadge', 'front');
   setupUpload('sideFile',  'sidePreview',  'sideCol',  'sideCheckBadge',  'side');
 
+  // Re-render dynamic result grids when language changes
+  window.onLangChange = function() {
+    if (_lastFront && _lastDepth && _lastCirc) {
+      renderLinear(_lastFront);
+      renderDepths(_lastDepth);
+      renderCirc(_lastCirc);
+      renderSizes(_lastFront, _lastCirc);
+    }
+  };
+
   // ── Analysis entry ─────────────────────────────────────────────────────────
   async function analyzePhotos() {
     if (!frontFile || !sideFile) return;
@@ -408,16 +423,16 @@
     document.getElementById('errorBox').style.display = 'none';
 
     try {
-      setLoading('Laster AI-modell...');
+      setLoading(t('ks_loading'));
       const [frontImg, sideImg] = await Promise.all([loadImg(frontFile), loadImg(sideFile)]);
 
-      setLoading('Analyserer frontbilde...');
+      setLoading(t('ks_loading'));
       const frontResult = await runPose(frontImg);
 
-      setLoading('Analyserer sidebilde...');
+      setLoading(t('ks_loading'));
       const sideResult = await runPose(sideImg);
 
-      setLoading('Beregner mål...');
+      setLoading(t('ks_loading'));
       buildResults(frontResult, frontImg, sideResult, sideImg);
     } catch (err) {
       console.error(err);
@@ -697,28 +712,28 @@
   // ── Render ────────────────────────────────────────────────────────────────
   function renderLinear(m) {
     const items = [
-      { l: 'Skulder',  v: m.shoulderWidth },
-      { l: 'Hofte',    v: m.hipWidth      },
-      { l: 'Torso',    v: m.torso         },
-      { l: 'Arm',      v: m.armLen        },
-      { l: 'Bein',     v: m.legLen        },
-      { l: 'Innsøm',   v: m.inseam        },
+      { l: t('ks_lbl_shoulder'), v: m.shoulderWidth },
+      { l: t('ks_lbl_hip'),      v: m.hipWidth      },
+      { l: t('ks_lbl_torso'),    v: m.torso         },
+      { l: t('ks_lbl_arm'),      v: m.armLen        },
+      { l: t('ks_lbl_leg'),      v: m.legLen        },
+      { l: t('ks_lbl_inseam'),   v: m.inseam        },
     ];
     document.getElementById('linearGrid').innerHTML = items.map(i =>
       `<div class="meas-item">
         <div class="meas-label">${i.l}</div>
         <div class="meas-value">${i.v}<span class="meas-unit">cm</span></div>
-        <div class="src">forfra</div>
+        <div class="src">${t('ks_src_front')}</div>
       </div>`
     ).join('');
   }
 
   function renderDepths(d) {
-    const note = d.usedSilhouette ? 'siluett' : 'estimat';
+    const note = d.usedSilhouette ? t('ks_src_silh') : t('ks_src_est');
     const items = [
-      { l: 'Brystdybde', v: d.chestDepth },
-      { l: 'Midjedybde', v: d.waistDepth },
-      { l: 'Hoftedybde', v: d.hipDepth   },
+      { l: t('ks_lbl_chest_d'), v: d.chestDepth },
+      { l: t('ks_lbl_waist_d'), v: d.waistDepth },
+      { l: t('ks_lbl_hip_d'),   v: d.hipDepth   },
     ];
     document.getElementById('depthGrid').innerHTML = items.map(i =>
       `<div class="meas-item">
@@ -731,15 +746,15 @@
 
   function renderCirc(c) {
     const items = [
-      { l: 'Brystomkrets', v: c.chestCirc },
-      { l: 'Midjeomkrets', v: c.waistCirc },
-      { l: 'Hofteomkrets', v: c.hipCirc   },
+      { l: t('ks_lbl_chest_c'), v: c.chestCirc },
+      { l: t('ks_lbl_waist_c'), v: c.waistCirc },
+      { l: t('ks_lbl_hip_c'),   v: c.hipCirc   },
     ];
     document.getElementById('circGrid').innerHTML = items.map(i =>
       `<div class="meas-item">
         <div class="meas-label">${i.l}</div>
         <div class="meas-value combined">${i.v}<span class="meas-unit">cm</span></div>
-        <div class="src">ellipse bredde+dybde</div>
+        <div class="src">${t('ks_src_ellipse')}</div>
       </div>`
     ).join('');
   }
@@ -749,33 +764,33 @@
   function jacketEU(c)   { return c<84?'44':c<88?'46':c<92?'48':c<96?'50':c<100?'52':c<104?'54':c<108?'56':'58'; }
   function pantsIntl(w, i) { return `W${Math.round(w/2.54)} / L${Math.round(i/2.54)}`; }
   function pantsEU(w)    { return w<72?'28':w<76?'30':w<80?'32':w<84?'34':w<88?'36':w<92?'38':w<96?'40':'42'; }
-  function armCat(cm)    { return cm<60?'Kort':cm<68?'Normal':'Lang'; }
+  function armCat(cm)    { return cm<60?t('ks_arm_short'):cm<68?t('ks_arm_normal'):t('ks_arm_long'); }
 
   function renderSizes(front, circ) {
     const sizes = [
       {
-        cat: 'T-skjorte / Genser', size: topSize(circ.chestCirc),
-        detail: `Bryst ~${circ.chestCirc} cm`, acc: 'high'
+        cat: t('ks_cat_top'), size: topSize(circ.chestCirc),
+        detail: t('ks_detail_chest').replace('{v}', circ.chestCirc), acc: 'high'
       },
       {
-        cat: 'Jakke / Dress (EU)', size: jacketEU(circ.chestCirc),
-        detail: `EU · bryst ~${circ.chestCirc} cm`, acc: 'high'
+        cat: t('ks_cat_jacket'), size: jacketEU(circ.chestCirc),
+        detail: t('ks_detail_jacket').replace('{v}', circ.chestCirc), acc: 'high'
       },
       {
-        cat: 'Bukse (internasjonal)', size: pantsIntl(circ.waistCirc, front.inseam),
-        detail: `Midje ~${circ.waistCirc} cm · innsøm ~${front.inseam} cm`, acc: 'med'
+        cat: t('ks_cat_pants_i'), size: pantsIntl(circ.waistCirc, front.inseam),
+        detail: t('ks_detail_pants_i').replace('{w}', circ.waistCirc).replace('{i}', front.inseam), acc: 'med'
       },
       {
-        cat: 'Bukse (EU)', size: pantsEU(circ.waistCirc),
-        detail: `EU · midje ~${circ.waistCirc} cm`, acc: 'med'
+        cat: t('ks_cat_pants_eu'), size: pantsEU(circ.waistCirc),
+        detail: t('ks_detail_pants_eu').replace('{v}', circ.waistCirc), acc: 'med'
       },
       {
-        cat: 'Skulderbredde', size: front.shoulderWidth + ' cm',
-        detail: 'Jakker og skjorter', acc: 'high'
+        cat: t('ks_cat_shoulder'), size: front.shoulderWidth + ' cm',
+        detail: t('ks_detail_shoulder'), acc: 'high'
       },
       {
-        cat: 'Armlengde', size: armCat(front.armLen),
-        detail: `~${front.armLen} cm (skulder → håndledd)`, acc: 'high'
+        cat: t('ks_cat_arm'), size: armCat(front.armLen),
+        detail: t('ks_detail_arm').replace('{v}', front.armLen), acc: 'high'
       },
     ];
     document.getElementById('sizeGrid').innerHTML = sizes.map(s => `
@@ -783,7 +798,7 @@
         <div class="size-cat">${s.cat}</div>
         <div class="size-badge">${s.size}</div>
         <div class="size-detail">${s.detail}</div>
-        <span class="accuracy-badge acc-${s.acc}">${s.acc === 'high' ? '★ God nøyaktighet' : '~ Estimat'}</span>
+        <span class="accuracy-badge acc-${s.acc}">${s.acc === 'high' ? t('ks_acc_high') : t('ks_acc_med')}</span>
       </div>`
     ).join('');
   }

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>moensworld</title>
+  <script src="/lang.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -220,18 +221,22 @@
 
   <header>
     <div class="logo">moens<span class="dot">world</span></div>
-    <p class="tagline">Personlige prosjekter innen sykling, seiling og teknologi</p>
+    <p class="tagline" data-i18n="home_tagline">Personlige prosjekter innen sykling, seiling og teknologi</p>
+    <div class="lang-sw" style="margin-top:14px;">
+      <button data-lang-btn="no" onclick="setLang('no')">🇳🇴 NO</button>
+      <button data-lang-btn="en" onclick="setLang('en')">🇬🇧 EN</button>
+    </div>
   </header>
 
-  <p class="section-label">Prosjekter</p>
+  <p class="section-label" data-i18n="home_projects">Prosjekter</p>
 
   <div class="grid">
 
     <a href="bikefit.html" class="card card-bike">
       <span class="card-arrow">↗</span>
       <div class="card-icon">🚴</div>
-      <div class="card-title">BikeFit AI</div>
-      <div class="card-desc">
+      <div class="card-title" data-i18n="card_bikefit_title">BikeFit AI</div>
+      <div class="card-desc" data-i18n="card_bikefit_desc">
         Finn din perfekte sykkelposisjon med AI-basert posisjonsanalyse direkte i nettleseren. Last opp bilde eller bruk kamera.
       </div>
       <div class="card-tags">
@@ -244,8 +249,8 @@
     <a href="klesstorrelse.html" class="card card-klesty">
       <span class="card-arrow">↗</span>
       <div class="card-icon">👕</div>
-      <div class="card-title">Klesstørrelse</div>
-      <div class="card-desc">
+      <div class="card-title" data-i18n="card_klesty_title">Klesstørrelse</div>
+      <div class="card-desc" data-i18n="card_klesty_desc">
         Estimer kroppsmål og klesstørrelser fra bilde. Oppgi høyde som referanse, last opp et frontbilde og få størrelsesanbefalinger.
       </div>
       <div class="card-tags">
@@ -258,8 +263,8 @@
     <a href="vaerkart.html" class="card card-weather">
       <span class="card-arrow">↗</span>
       <div class="card-icon">⛅</div>
-      <div class="card-title">Norsk Vær Live</div>
-      <div class="card-desc">
+      <div class="card-title" data-i18n="card_weather_title">Norsk Vær Live</div>
+      <div class="card-desc" data-i18n="card_weather_desc">
         Interaktivt værkart med live data fra Meteorologisk institutts Frost API. Temperatur, vind, nedbør og lynnedslag.
       </div>
       <div class="card-tags">
@@ -272,8 +277,8 @@
     <a href="sailing-app/index.html" class="card card-sailing">
       <span class="card-arrow">↗</span>
       <div class="card-icon">⛵</div>
-      <div class="card-title">Seilinstrument</div>
-      <div class="card-desc">
+      <div class="card-title" data-i18n="card_sail_title">Seilinstrument</div>
+      <div class="card-desc" data-i18n="card_sail_desc">
         Seilinstrument med mulighet for VMG-beregninger gjennom koordinater.
       </div>
       <div class="card-tags">
@@ -286,8 +291,8 @@
     <a href="seiling/" class="card card-moensail">
       <span class="card-arrow">↗</span>
       <div class="card-icon">⛵</div>
-      <div class="card-title">Sammenligning av seilbåter</div>
-      <div class="card-desc">
+      <div class="card-title" data-i18n="card_moensail_title">Sammenligning av seilbåter</div>
+      <div class="card-desc" data-i18n="card_moensail_desc">
         Sammenligner seilbåter med gyldige Norrating målebrev. Visualiser forskjellene i tabeller og beregn seiltid gjennom waypoints med ulik vind.
       </div>
       <div class="card-tags">
@@ -300,8 +305,8 @@
     <a href="kystvaer/" class="card card-kyst">
       <span class="card-arrow">↗</span>
       <div class="card-icon">🌊</div>
-      <div class="card-title">Kystværet</div>
-      <div class="card-desc">
+      <div class="card-title" data-i18n="card_kyst_title">Kystværet</div>
+      <div class="card-desc" data-i18n="card_kyst_desc">
         Vindoversikt fra Kystverkets database med visualisering.
       </div>
       <div class="card-tags">
