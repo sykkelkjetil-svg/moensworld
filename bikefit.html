@@ -255,11 +255,11 @@ input[type=range]::-webkit-slider-thumb {
   <div class="steps">
     <div class="step active" id="s1"><div class="step-num">1</div><span class="step-lbl" data-i18n="bf_s1">Modus</span></div>
     <div class="step-line"></div>
-    <div class="step" id="s2"><div class="step-num">2</div><span class="step-lbl" data-i18n="bf_s2">Sykkeltype</span></div>
+    <div class="step" id="s2"><div class="step-num">2</div><span class="step-lbl" data-i18n="bf_s4">Mål</span></div>
     <div class="step-line"></div>
-    <div class="step" id="s3"><div class="step-num">3</div><span class="step-lbl" data-i18n="bf_s3">Kjørestil</span></div>
+    <div class="step" id="s3"><div class="step-num">3</div><span class="step-lbl" data-i18n="bf_s2">Sykkeltype</span></div>
     <div class="step-line"></div>
-    <div class="step" id="s4"><div class="step-num">4</div><span class="step-lbl" data-i18n="bf_s4">Mål</span></div>
+    <div class="step" id="s4"><div class="step-num">4</div><span class="step-lbl" data-i18n="bf_s3">Kjørestil</span></div>
     <div class="step-line"></div>
     <div class="step" id="s5"><div class="step-num">5</div><span class="step-lbl" data-i18n="bf_s5">Resultat</span></div>
   </div>
@@ -281,52 +281,7 @@ input[type=range]::-webkit-slider-thumb {
     </div>
   </div>
 
-  <!-- 2. Bike type -->
-  <div class="card">
-    <div class="card-title" data-i18n="bf_bike_title">🚲 Sykkeltype</div>
-    <div class="bike-types">
-      <div class="bt-btn active" id="bt-road" onclick="setBike('road')">
-        <span class="bt-icon">🚴</span>
-        <div class="bt-name" data-i18n="bf_bt_road">Landevei</div>
-        <div class="bt-desc" data-i18n="bf_bt_road_d">Rask, aero</div>
-      </div>
-      <div class="bt-btn" id="bt-gravel" onclick="setBike('gravel')">
-        <span class="bt-icon">🛤️</span>
-        <div class="bt-name" data-i18n="bf_bt_gravel">Gravel</div>
-        <div class="bt-desc" data-i18n="bf_bt_gravel_d">Allround</div>
-      </div>
-      <div class="bt-btn" id="bt-mtb" onclick="setBike('mtb')">
-        <span class="bt-icon">🏔️</span>
-        <div class="bt-name" data-i18n="bf_bt_mtb">MTB</div>
-        <div class="bt-desc" data-i18n="bf_bt_mtb_d">Terreng</div>
-      </div>
-      <div class="bt-btn" id="bt-city" onclick="setBike('city')">
-        <span class="bt-icon">🏙️</span>
-        <div class="bt-name" data-i18n="bf_bt_city">By/Hybrid</div>
-        <div class="bt-desc" data-i18n="bf_bt_city_d">Daglig</div>
-      </div>
-      <div class="bt-btn" id="bt-tt" onclick="setBike('tt')">
-        <span class="bt-icon">⏱️</span>
-        <div class="bt-name" data-i18n="bf_bt_tt">TT/Tri</div>
-        <div class="bt-desc" data-i18n="bf_bt_tt_d">Maks aero</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. Riding position -->
-  <div class="card">
-    <div class="card-title" data-i18n="bf_style_title">🎚️ Kjørestil og posisjon</div>
-    <div class="pos-labels">
-      <span class="pos-label" style="text-align:left"><span data-i18n="bf_pos0">🏁 Aggressiv</span><br><small data-i18n="bf_pos0s">Race</small></span>
-      <span class="pos-label"><span data-i18n="bf_pos1">⚡ Sport</span><br><small data-i18n="bf_pos1s">Balansert</small></span>
-      <span class="pos-label"><span data-i18n="bf_pos2">🌿 Komfort</span><br><small data-i18n="bf_pos2s">Avslappet</small></span>
-      <span class="pos-label" style="text-align:right"><span data-i18n="bf_pos3">🛋️ Oppreist</span><br><small data-i18n="bf_pos3s">Touring</small></span>
-    </div>
-    <input type="range" id="pos-slider" min="0" max="3" step="1" value="1" oninput="updatePosPreview()">
-    <div class="pos-preview" id="pos-preview">⚡ Sport — Balansert mellom ytelse og komfort</div>
-  </div>
-
-  <!-- 4a. Photo analysis (optional) -->
+  <!-- 2. Photo analysis (optional) -->
   <div class="card" id="photo-card">
     <div class="card-title" data-i18n="bf_photo_title">📸 Mål kropp fra bilde <span class="photo-badge">AI</span></div>
     <p class="photo-intro" data-i18n="bf_photo_intro">
@@ -371,7 +326,7 @@ input[type=range]::-webkit-slider-thumb {
     </div>
   </div>
 
-  <!-- 4. Measurements -->
+  <!-- 2. Measurements -->
   <div class="card">
     <div class="card-title" data-i18n="bf_meas_title">📏 Kroppsmål</div>
 
@@ -419,8 +374,53 @@ input[type=range]::-webkit-slider-thumb {
         </div>
       </div>
     </div>
+  </div>
 
-    <button class="calc-btn" onclick="calculate()" data-i18n="bf_calc_btn">📐 Beregn min sykkelfit</button>
+  <!-- 3. Bike type -->
+  <div class="card">
+    <div class="card-title" data-i18n="bf_bike_title">🚲 Sykkeltype</div>
+    <div class="bike-types">
+      <div class="bt-btn active" id="bt-road" onclick="setBike('road')">
+        <span class="bt-icon">🚴</span>
+        <div class="bt-name" data-i18n="bf_bt_road">Landevei</div>
+        <div class="bt-desc" data-i18n="bf_bt_road_d">Rask, aero</div>
+      </div>
+      <div class="bt-btn" id="bt-gravel" onclick="setBike('gravel')">
+        <span class="bt-icon">🛤️</span>
+        <div class="bt-name" data-i18n="bf_bt_gravel">Gravel</div>
+        <div class="bt-desc" data-i18n="bf_bt_gravel_d">Allround</div>
+      </div>
+      <div class="bt-btn" id="bt-mtb" onclick="setBike('mtb')">
+        <span class="bt-icon">🏔️</span>
+        <div class="bt-name" data-i18n="bf_bt_mtb">MTB</div>
+        <div class="bt-desc" data-i18n="bf_bt_mtb_d">Terreng</div>
+      </div>
+      <div class="bt-btn" id="bt-city" onclick="setBike('city')">
+        <span class="bt-icon">🏙️</span>
+        <div class="bt-name" data-i18n="bf_bt_city">By/Hybrid</div>
+        <div class="bt-desc" data-i18n="bf_bt_city_d">Daglig</div>
+      </div>
+      <div class="bt-btn" id="bt-tt" onclick="setBike('tt')">
+        <span class="bt-icon">⏱️</span>
+        <div class="bt-name" data-i18n="bf_bt_tt">TT/Tri</div>
+        <div class="bt-desc" data-i18n="bf_bt_tt_d">Maks aero</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Riding position -->
+  <div class="card">
+    <div class="card-title" data-i18n="bf_style_title">🎚️ Kjørestil og posisjon</div>
+    <div class="pos-labels">
+      <span class="pos-label" style="text-align:left"><span data-i18n="bf_pos0">🏁 Aggressiv</span><br><small data-i18n="bf_pos0s">Race</small></span>
+      <span class="pos-label"><span data-i18n="bf_pos1">⚡ Sport</span><br><small data-i18n="bf_pos1s">Balansert</small></span>
+      <span class="pos-label"><span data-i18n="bf_pos2">🌿 Komfort</span><br><small data-i18n="bf_pos2s">Avslappet</small></span>
+      <span class="pos-label" style="text-align:right"><span data-i18n="bf_pos3">🛋️ Oppreist</span><br><small data-i18n="bf_pos3s">Touring</small></span>
+    </div>
+    <input type="range" id="pos-slider" min="0" max="3" step="1" value="1" oninput="updatePosPreview()">
+    <div class="pos-preview" id="pos-preview">⚡ Sport — Balansert mellom ytelse og komfort</div>
+
+    <button class="calc-btn" onclick="calculate()" data-i18n="bf_calc_btn" style="margin-top:18px">📐 Beregn min sykkelfit</button>
   </div>
 
   <!-- 5. Results -->
