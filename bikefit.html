@@ -886,23 +886,37 @@ function drawBike(r) {
   const kneeX = hipX + hpDX * t;
   const kneeY = hipY + hpDY * t;
 
-  // Torso
+  // Torso — shoulder is FORWARD of hip (cyclist leans toward bars)
   const torsoPx = (r.heightMm - r.inseamMm) * 0.62 * SC;
   const backAng = [32, 44, 57, 72][position] * Math.PI / 180;
-  const shoulderX = hipX - torsoPx * Math.cos(backAng);
+  const shoulderX = hipX + torsoPx * Math.cos(backAng);
   const shoulderY = hipY - torsoPx * Math.sin(backAng);
 
-  // Arms
+  // Arms — use two-circle intersection for realistic elbow bend
   const upperArmPx = (r.heightMm - r.inseamMm) * 0.29 * SC;
   const foreArmPx  = (r.heightMm - r.inseamMm) * 0.27 * SC;
   const aDX = barX - shoulderX, aDY = barY - shoulderY;
-  const ta = upperArmPx / (upperArmPx + foreArmPx);
-  const elbowX = shoulderX + aDX * ta;
-  const elbowY = shoulderY + aDY * ta;
+  const armDist = Math.sqrt(aDX * aDX + aDY * aDY);
+  const totalArm = upperArmPx + foreArmPx;
+  let elbowX, elbowY;
+  if (armDist >= totalArm * 0.99) {
+    // Arm nearly fully extended — straight interpolation
+    elbowX = shoulderX + aDX * upperArmPx / totalArm;
+    elbowY = shoulderY + aDY * upperArmPx / totalArm;
+  } else {
+    // Law of cosines: elbow at intersection of two circles
+    const a = (upperArmPx * upperArmPx - foreArmPx * foreArmPx + armDist * armDist) / (2 * armDist);
+    const h = Math.sqrt(Math.max(0, upperArmPx * upperArmPx - a * a));
+    const footX = shoulderX + a * aDX / armDist;
+    const footY = shoulderY + a * aDY / armDist;
+    // Drop elbow downward (perpendicular pointing down in SVG: uses +aDX component)
+    elbowX = footX - h * aDY / armDist;
+    elbowY = footY + h * aDX / armDist;
+  }
 
-  // Head
+  // Head — slightly forward of shoulder, looking ahead
   const headR = r.heightMm * 0.038 * SC;
-  const headX = shoulderX - headR * 0.4;
+  const headX = shoulderX + headR * 0.5;
   const headY = shoulderY - headR * 2.2;
 
   // Colors
