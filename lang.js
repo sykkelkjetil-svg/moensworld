@@ -27,8 +27,8 @@
       card_moensail_desc: 'Sammenligner seilbåter med gyldige Norrating målebrev. Visualiser forskjellene i tabeller og beregn seiltid gjennom waypoints med ulik vind.',
       card_kyst_title:    'Kystværet',
       card_kyst_desc:     'Vindoversikt fra Kystverkets database med visualisering.',
-      card_klesty_title:  'Klesstørrelse',
-      card_klesty_desc:   'Estimer kroppsmål og klesstørrelser fra bilde. Oppgi høyde som referanse, last opp et frontbilde og få størrelsesanbefalinger.',
+      card_skagen_title:  'Skagen Race Simulator',
+      card_skagen_desc:   'Racesimulator for offshore-regattaer med ekte ORC-polærdata. Last inn hvilken som helst manage2sail-regatta og se hvem som vinner på faktisk og korrigert tid.',
 
       // ── BikeFit ─────────────────────────────────────────────────────────────
       bf_sub:            'Finn din perfekte sykkelposisjon',
@@ -231,8 +231,8 @@
       card_moensail_desc: 'Compare sailboats with valid Norrating rating certificates. Visualise differences in tables and calculate sailing time through waypoints with varying wind.',
       card_kyst_title:    'Coastal Weather',
       card_kyst_desc:     'Wind overview from the Norwegian Coastal Administration database with visualisation.',
-      card_klesty_title:  'Clothing Size',
-      card_klesty_desc:   'Estimate body measurements and clothing sizes from photos. Provide your height as a reference, upload a front photo and get size recommendations.',
+      card_skagen_title:  'Skagen Race Simulator',
+      card_skagen_desc:   'Race simulator for offshore regattas using real ORC polar data. Load any manage2sail regatta and see who wins on actual and corrected time.',
 
       bf_sub:            'Find your perfect bike position',
       bf_s1:             'Mode', bf_s2: 'Bike type', bf_s3: 'Riding style',
