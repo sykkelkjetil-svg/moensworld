@@ -334,8 +334,8 @@ const LN_SPEEDS = [30,20,12,6,2];
 // ═══════════════════════════════════════════════════════════════
 function init() {
   map = L.map('map', { center:[65.0,16.0], zoom:5, zoomControl:false });
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19
+  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+    attribution:'© <a href="https://stadiamaps.com/">Stadia Maps</a> © <a href="https://openmaptiles.org/">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom:20
   }).addTo(map);
   L.control.zoom({ position:'topright' }).addTo(map);
   markersLayer  = L.layerGroup().addTo(map);
