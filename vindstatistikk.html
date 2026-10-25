@@ -384,8 +384,20 @@ async function selectStation(id) {
 function renderChart(spdLog, gustLog, minutes) {
   const spdAgg  = aggregate(spdLog, minutes);
   const gustAgg = aggregate(gustLog, minutes);
-  const labels  = spdAgg.map(p =>
-    p.t.toLocaleTimeString("no", { hour: "2-digit", minute: "2-digit" }));
+
+  // Unified timeline — merge both sets of timestamps so datasets stay in sync
+  const allTimes = Array.from(new Set([
+    ...spdAgg.map(p => p.t.getTime()),
+    ...gustAgg.map(p => p.t.getTime()),
+  ])).sort((a, b) => a - b);
+
+  const spdMap  = new Map(spdAgg.map(p => [p.t.getTime(), p.avg]));
+  const gustMap = new Map(gustAgg.map(p => [p.t.getTime(), p.max]));
+
+  const labels   = allTimes.map(t =>
+    new Date(t).toLocaleTimeString("no", { hour: "2-digit", minute: "2-digit" }));
+  const spdData  = allTimes.map(t => spdMap.has(t)  ? +spdMap.get(t).toFixed(1)  : null);
+  const gustData = allTimes.map(t => gustMap.has(t) ? +gustMap.get(t).toFixed(1) : null);
 
   if (chart) { chart.destroy(); chart = null; }
 
@@ -396,19 +408,21 @@ function renderChart(spdLog, gustLog, minutes) {
       datasets: [
         {
           label: "Vindstyrke (m/s)",
-          data: spdAgg.map(p => +p.avg.toFixed(1)),
+          data: spdData,
           borderColor: "hsl(190,80%,50%)",
           backgroundColor: "hsla(190,80%,50%,.08)",
           fill: true, tension: .3, borderWidth: 2,
-          pointRadius: spdAgg.length > 80 ? 0 : 3,
+          pointRadius: allTimes.length > 80 ? 0 : 3,
+          spanGaps: true,
         },
         {
           label: "Kast (m/s)",
-          data: gustAgg.map(p => +p.max.toFixed(1)),
+          data: gustData,
           borderColor: "hsl(25,90%,60%)",
           backgroundColor: "transparent",
           fill: false, tension: .3, borderWidth: 1.5,
           pointRadius: 0, borderDash: [4, 3],
+          spanGaps: true,
         }
       ]
     },
