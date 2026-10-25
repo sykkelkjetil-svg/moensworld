@@ -350,22 +350,39 @@ async function selectStation(id) {
   });
 
   const nos = stData[id]?.sensorNos || { spd: 2, gust: 3, dir: 1 };
-  const [spdLog, gustLog, dirLog] = await Promise.all([
-    fetchLog(id, nos.spd, 24),
+
+  // Fetch 24h history and fresh short-window data in parallel.
+  // The historical API often has several hours' lag — the short window
+  // hits a real-time endpoint and gives the true latest reading.
+  const [spdLog, gustLog, dirLog, spdFresh, gustFresh] = await Promise.all([
+    fetchLog(id, nos.spd,  24),
     fetchLog(id, nos.gust, 24),
-    fetchLog(id, nos.dir, 24),
+    fetchLog(id, nos.dir,  24),
+    fetchLog(id, nos.spd,  0.5),   // last 30 min — real-time backend
+    fetchLog(id, nos.gust, 0.5),
   ]);
 
-  if (!spdLog.length) {
+  if (!spdLog.length && !spdFresh.length) {
     document.getElementById("dMeta").textContent = "Ingen data tilgjengelig";
     return;
   }
 
-  const lastSpd  = spdLog[spdLog.length - 1]?.Value;
-  const lastDir  = dirLog[dirLog.length - 1]?.Value;
-  const maxGust  = gustLog.length ? Math.max(...gustLog.map(s => s.Value)) : null;
-  const avgSpd   = spdLog.reduce((a, b) => a + b.Value, 0) / spdLog.length;
-  const lastTs   = spdLog[spdLog.length - 1]?.Timestamp;
+  // Merge fresh readings that are newer than the last historical entry
+  function mergeRecent(log, fresh) {
+    if (!fresh.length) return log;
+    const lastHistTs = log.length ? new Date(log[log.length - 1].Timestamp).getTime() : 0;
+    const newer = fresh.filter(s => new Date(s.Timestamp).getTime() > lastHistTs);
+    return [...log, ...newer];
+  }
+  const mergedSpd  = mergeRecent(spdLog,  spdFresh);
+  const mergedGust = mergeRecent(gustLog, gustFresh);
+
+  const liveEntry = spdFresh.length ? spdFresh[spdFresh.length - 1] : null;
+  const lastSpd   = liveEntry?.Value ?? mergedSpd[mergedSpd.length - 1]?.Value;
+  const lastDir   = dirLog[dirLog.length - 1]?.Value;
+  const maxGust   = mergedGust.length ? Math.max(...mergedGust.map(s => s.Value)) : null;
+  const avgSpd    = mergedSpd.reduce((a, b) => a + b.Value, 0) / mergedSpd.length;
+  const lastTs    = liveEntry?.Timestamp ?? mergedSpd[mergedSpd.length - 1]?.Timestamp;
 
   if (stData[id]) stData[id].max24h = maxGust;
   renderLeaderboard(allStations.filter(s => stData[s.Id]?.speed != null));
@@ -377,9 +394,9 @@ async function selectStation(id) {
   document.getElementById("dMeta").textContent =
     lastTs ? `Siste måling: ${new Date(lastTs).toLocaleString("no")}` : "";
 
-  station._spdLog  = spdLog;
-  station._gustLog = gustLog;
-  renderChart(spdLog, gustLog, aggMinutes);
+  station._spdLog  = mergedSpd;
+  station._gustLog = mergedGust;
+  renderChart(mergedSpd, mergedGust, aggMinutes);
 }
 
 function renderChart(spdLog, gustLog, minutes) {
