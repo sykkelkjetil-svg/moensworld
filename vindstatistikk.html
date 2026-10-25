@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vindstatistikk – moensworld</title>
+  <meta name="description" content="Live vindstatistikk fra Kystverkets stasjoner langs norskekysten">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #09090f; --surface: #111120; --surface2: #16162a;
+      --border: rgba(255,255,255,0.07); --text: #f0f0f8;
+      --muted: rgba(255,255,255,0.38); --accent: #6c63ff; --accent2: #00d2ff;
+    }
+    html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 15% 5%, rgba(249,115,22,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 85%, rgba(0,210,255,0.07) 0%, transparent 60%);
+    }
+    .page { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 0 20px 60px; }
+
+    /* Header */
+    header { padding: 44px 0 28px; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 13px; margin-bottom: 18px; transition: color .2s; }
+    .back-link:hover { color: var(--text); }
+    .storm-badge { display: none; background: rgba(249,115,22,.18); border: 1px solid rgba(249,115,22,.4); color: #f97316; font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; padding: 3px 11px; border-radius: 20px; margin-bottom: 10px; }
+    h1 { font-size: clamp(26px,5vw,40px); font-weight: 800; letter-spacing: -1px; }
+    .subtitle { color: var(--muted); font-size: 13px; margin-top: 7px; }
+
+    /* Controls */
+    .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .seg { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .seg button { background: none; border: none; color: var(--muted); font-size: 13px; font-weight: 600; padding: 7px 15px; cursor: pointer; transition: color .15s, background .15s; }
+    .seg button.active { background: rgba(255,255,255,.09); color: var(--text); }
+    .seg button:hover:not(.active) { color: var(--text); }
+    .ctrl-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+    .refresh-btn { margin-left: auto; background: none; border: 1px solid var(--border); color: var(--muted); padding: 7px 14px; border-radius: 10px; font-size: 13px; cursor: pointer; transition: color .2s, border-color .2s; }
+    .refresh-btn:hover { color: var(--text); border-color: rgba(255,255,255,.18); }
+
+    /* Progress */
+    .progress-bar { height: 3px; background: rgba(255,255,255,.05); border-radius: 2px; margin-bottom: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 2px; transition: width .3s ease; }
+    .progress-text { font-size: 11px; color: var(--muted); min-height: 16px; margin-bottom: 12px; }
+
+    /* Leaderboard */
+    .leaderboard { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; }
+    .lb-header { display: grid; grid-template-columns: 2fr 80px 80px 80px 70px; gap: 8px; padding: 11px 20px; border-bottom: 1px solid var(--border); font-size: 10.5px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+    .lb-row { display: grid; grid-template-columns: 2fr 80px 80px 80px 70px; gap: 8px; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,.035); align-items: center; cursor: pointer; transition: background .15s; }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-row:hover { background: rgba(255,255,255,.04); }
+    .lb-row.selected { background: rgba(108,99,255,.1); border-left: 3px solid var(--accent); padding-left: 17px; }
+    .s-name { font-weight: 600; font-size: 14px; }
+    .s-desc { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wval { font-size: 16px; font-weight: 700; }
+    .wval.na { font-size: 13px; font-weight: 400; color: var(--muted); }
+    .dir-val { font-size: 13px; color: var(--muted); }
+
+    /* Wind colors */
+    .wc0 { color: hsl(150,60%,45%); }
+    .wc1 { color: hsl(190,80%,50%); }
+    .wc2 { color: hsl(45,90%,55%); }
+    .wc3 { color: hsl(25,90%,55%); }
+    .wc4 { color: hsl(0,72%,51%); }
+
+    /* Detail panel */
+    .detail { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 24px; margin-top: 18px; }
+    .detail-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+    .detail-title { font-size: 20px; font-weight: 700; }
+    .detail-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .detail-controls { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+    .close-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: color .2s; }
+    .close-btn:hover { color: var(--text); }
+    .stats-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 16px; min-width: 100px; }
+    .stat-lbl { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 3px; }
+    .stat-val { font-size: 22px; font-weight: 800; }
+    .stat-unit { font-size: 11px; color: var(--muted); margin-left: 2px; }
+    .chart-wrap { position: relative; height: 250px; }
+
+    /* Empty / loading */
+    .empty { padding: 44px; text-align: center; color: var(--muted); font-size: 14px; }
+
+    @media (max-width: 600px) {
+      .lb-header, .lb-row { grid-template-columns: 1fr 72px 72px; }
+      .lb-header :nth-child(4), .lb-row :nth-child(4),
+      .lb-header :nth-child(5), .lb-row :nth-child(5) { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <a href="/" class="back-link">← moensworld</a>
+    <div class="storm-badge" id="stormBadge"></div>
+    <h1 id="pageTitle">Vindstatistikk</h1>
+    <p class="subtitle" id="subtitle">Laster stasjoner…</p>
+  </header>
+
+  <div class="controls">
+    <span class="ctrl-label">Tidsvindu</span>
+    <div class="seg" id="winSeg">
+      <button data-h="1" class="active">1 time</button>
+      <button data-h="6">6 timer</button>
+      <button data-h="24">24 timer</button>
+    </div>
+    <button class="refresh-btn" id="refreshBtn">↺ Oppdater</button>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="pFill" style="width:0%"></div></div>
+  <div class="progress-text" id="pText"></div>
+
+  <div class="leaderboard">
+    <div class="lb-header">
+      <span>Stasjon</span>
+      <span>Nå (m/s)</span>
+      <span>Kast (m/s)</span>
+      <span>Max 24h</span>
+      <span>Retning</span>
+    </div>
+    <div id="lbBody"><div class="empty">Laster vinddata…</div></div>
+  </div>
+
+  <div class="detail" id="detail" style="display:none">
+    <div class="detail-top">
+      <div>
+        <div class="detail-title" id="dTitle"></div>
+        <div class="detail-meta" id="dMeta"></div>
+      </div>
+      <div class="detail-controls">
+        <span class="ctrl-label">Aggregering</span>
+        <div class="seg" id="aggSeg">
+          <button data-m="10" class="active">10 min</button>
+          <button data-m="60">1 time</button>
+          <button data-m="1440">Døgn</button>
+        </div>
+        <button class="close-btn" id="closeBtn">✕</button>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-lbl">Nå</div><div class="stat-val" id="sNow">—<span class="stat-unit">m/s</span></div></div>
+      <div class="stat"><div class="stat-lbl">Max kast 24h</div><div class="stat-val" id="sGust">—<span class="stat-unit">m/s</span></div></div>
+      <div class="stat"><div class="stat-lbl">Snitt</div><div class="stat-val" id="sAvg">—<span class="stat-unit">m/s</span></div></div>
+      <div class="stat"><div class="stat-lbl">Retning</div><div class="stat-val" id="sDir">—</div></div>
+    </div>
+    <div class="chart-wrap"><canvas id="windChart"></canvas></div>
+  </div>
+</div>
+
+<script>
+const PROXY = "https://lingering-sun-5872.sykkelkjetil.workers.dev";
+const KYST  = "https://mobvaer.kystverket.no/v4";
+const api   = p => `${PROXY}?url=${encodeURIComponent(KYST + p)}`;
+const fmt   = d => d.toISOString().replace("Z", "");
+
+// Storm name from URL ?storm=Boelo
+const qs = new URLSearchParams(location.search);
+const storm = qs.get("storm");
+if (storm) {
+  const badge = document.getElementById("stormBadge");
+  badge.textContent = "Storm " + storm;
+  badge.style.display = "inline-block";
+  document.getElementById("pageTitle").textContent = "Vindstatistikk – Storm " + storm;
+  document.title = "Storm " + storm + " – Vindstatistikk";
+}
+
+// State
+let windowHours = 1;
+let aggMinutes  = 10;
+let allStations = [];
+let stData      = {};   // stationId → { speed, gust, dir, max24h, sensorNos }
+let selected    = null; // station object with _spdLog, _gustLog
+let chart       = null;
+
+// Keywords
+const SPD_KW  = ["windspd","vindhastighet","vindstyrke","hastighet"];
+const GUST_KW = ["windgus","vindkast","kastevind","gust"];
+const DIR_KW  = ["winddir","vindretning","retning","direction"];
+const matchKw = (n, kws) => kws.some(k => n.toLowerCase().includes(k));
+
+function windClass(v) {
+  if (!v && v !== 0) return "";
+  if (v < 3)  return "wc0";
+  if (v < 8)  return "wc1";
+  if (v < 14) return "wc2";
+  if (v < 21) return "wc3";
+  return "wc4";
+}
+
+function dirLabel(deg) {
+  if (deg == null) return "—";
+  const d = ["N","NNØ","NØ","ØNØ","Ø","ØSØ","SØ","SSØ","S","SSV","SV","VSV","V","VNV","NV","NNV"];
+  return d[Math.round(deg / 22.5) % 16];
+}
+
+async function fetchJson(url) {
+  try { const r = await fetch(url); return r.ok ? r.json() : null; }
+  catch { return null; }
+}
+
+async function getSensorNos(stationId) {
+  const tags = await fetchJson(api(`/stations/${stationId}/free`));
+  if (!tags?.length) return { spd: 2, gust: 3, dir: 1 };
+  const hasWind = tags.some(t => matchKw(t.Name, SPD_KW) || matchKw(t.Name, GUST_KW));
+  if (!hasWind) return null;
+  return {
+    spd:  tags.find(t => matchKw(t.Name, SPD_KW))?.No  ?? 2,
+    gust: tags.find(t => matchKw(t.Name, GUST_KW))?.No ?? 3,
+    dir:  tags.find(t => matchKw(t.Name, DIR_KW))?.No  ?? 1,
+  };
+}
+
+async function fetchLog(stationId, sensorNo, hours) {
+  const now  = new Date();
+  const from = new Date(now - hours * 3600000);
+  const data = await fetchJson(api(`/stations/${stationId}/free/${sensorNo}/log?from=${fmt(from)}&to=${fmt(now)}`));
+  return Array.isArray(data) ? data.filter(s => s?.Value != null) : [];
+}
+
+function aggregate(samples, minutes) {
+  if (!samples.length) return [];
+  const bucket = minutes * 60000;
+  const groups = {};
+  for (const s of samples) {
+    const key = Math.floor(new Date(s.Timestamp).getTime() / bucket) * bucket;
+    (groups[key] = groups[key] || []).push(s.Value);
+  }
+  return Object.entries(groups)
+    .map(([k, vals]) => ({
+      t: new Date(+k),
+      avg: vals.reduce((a, b) => a + b, 0) / vals.length,
+      max: Math.max(...vals),
+    }))
+    .sort((a, b) => a.t - b.t);
+}
+
+function setProgress(pct, text) {
+  document.getElementById("pFill").style.width = pct + "%";
+  document.getElementById("pText").textContent = text || "";
+}
+
+async function loadLeaderboard() {
+  document.getElementById("lbBody").innerHTML = '<div class="empty">Laster stasjoner…</div>';
+  stData = {};
+  setProgress(5, "Henter stasjonsliste…");
+
+  const all = await fetchJson(api("/stations"));
+  if (!all) {
+    document.getElementById("lbBody").innerHTML = '<div class="empty">Kunne ikke nå API</div>';
+    return;
+  }
+  allStations = all.filter(s => s.Enable && s.Latitude != null);
+  document.getElementById("subtitle").textContent =
+    `${allStations.length} stasjoner · Oppdatert ${new Date().toLocaleTimeString("no")}`;
+
+  const BATCH = 15;
+  const sensorMap = {};
+
+  // Phase 1: sensor discovery
+  for (let i = 0; i < allStations.length; i += BATCH) {
+    const batch = allStations.slice(i, i + BATCH);
+    const results = await Promise.all(batch.map(s => getSensorNos(s.Id)));
+    batch.forEach((s, j) => { sensorMap[s.Id] = results[j]; });
+    setProgress(5 + 25 * ((i + BATCH) / allStations.length),
+      `Sensorinfo ${Math.min(i + BATCH, allStations.length)}/${allStations.length}`);
+  }
+
+  const windSt = allStations.filter(s => sensorMap[s.Id] !== null);
+  setProgress(30, `Henter vinddata for ${windSt.length} stasjoner…`);
+
+  // Phase 2: current wind data
+  for (let i = 0; i < windSt.length; i += BATCH) {
+    const batch = windSt.slice(i, i + BATCH);
+    await Promise.all(batch.map(async s => {
+      const nos = sensorMap[s.Id];
+      const [spdLog, gustLog, dirLog] = await Promise.all([
+        fetchLog(s.Id, nos.spd, windowHours),
+        fetchLog(s.Id, nos.gust, windowHours),
+        fetchLog(s.Id, nos.dir, windowHours),
+      ]);
+      const last    = arr => arr.length ? arr[arr.length - 1].Value : null;
+      const maxIn   = arr => arr.length ? Math.max(...arr.map(x => x.Value)) : null;
+      const speed   = last(spdLog);
+      const gust    = last(gustLog);
+      const dir     = last(dirLog);
+      stData[s.Id]  = {
+        speed: speed != null && speed >= 0 && speed <= 80 ? speed : null,
+        gust:  gust  != null && gust  >= 0 && gust  <= 80 ? gust  : null,
+        max24h: null,
+        dir:   dir   != null && dir   >= 0 && dir   <= 360 ? dir   : null,
+        sensorNos: nos,
+      };
+    }));
+    setProgress(30 + 65 * ((i + BATCH) / windSt.length),
+      `Vinddata ${Math.min(i + BATCH, windSt.length)}/${windSt.length}`);
+    renderLeaderboard(windSt);
+  }
+
+  setProgress(100, "");
+  setTimeout(() => { setProgress(0, ""); document.getElementById("pText").textContent = ""; }, 800);
+}
+
+function renderLeaderboard(stations) {
+  const sorted = stations
+    .filter(s => stData[s.Id]?.speed != null)
+    .sort((a, b) => (stData[b.Id]?.speed || 0) - (stData[a.Id]?.speed || 0));
+
+  if (!sorted.length) return;
+
+  document.getElementById("lbBody").innerHTML = sorted.map(s => {
+    const d   = stData[s.Id] || {};
+    const sel = selected?.Id === s.Id ? " selected" : "";
+    const v   = (val, fallback = "—") =>
+      val != null ? `<span class="wval ${windClass(val)}">${val.toFixed(1)}</span>`
+                  : `<span class="wval na">${fallback}</span>`;
+    const max = d.max24h != null ? v(d.max24h) : '<span class="wval na">…</span>';
+    return `<div class="lb-row${sel}" data-id="${s.Id}">
+      <div><div class="s-name">${s.Name}</div><div class="s-desc">${s.Description || ""}</div></div>
+      ${v(d.speed)}
+      ${v(d.gust)}
+      ${max}
+      <div class="dir-val">${dirLabel(d.dir)}</div>
+    </div>`;
+  }).join("");
+
+  document.querySelectorAll(".lb-row").forEach(row => {
+    row.addEventListener("click", () => selectStation(+row.dataset.id));
+  });
+}
+
+async function selectStation(id) {
+  const station = allStations.find(s => s.Id === id);
+  if (!station) return;
+  selected = station;
+
+  document.querySelectorAll(".lb-row").forEach(r =>
+    r.classList.toggle("selected", +r.dataset.id === id));
+
+  const panel = document.getElementById("detail");
+  panel.style.display = "block";
+  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+  document.getElementById("dTitle").textContent = station.Name;
+  document.getElementById("dMeta").textContent  = "Laster 24 timers historikk…";
+  ["sNow","sGust","sAvg","sDir"].forEach(id => {
+    document.getElementById(id).innerHTML = "…";
+  });
+
+  const nos = stData[id]?.sensorNos || { spd: 2, gust: 3, dir: 1 };
+  const [spdLog, gustLog, dirLog] = await Promise.all([
+    fetchLog(id, nos.spd, 24),
+    fetchLog(id, nos.gust, 24),
+    fetchLog(id, nos.dir, 24),
+  ]);
+
+  if (!spdLog.length) {
+    document.getElementById("dMeta").textContent = "Ingen data tilgjengelig";
+    return;
+  }
+
+  const lastSpd  = spdLog[spdLog.length - 1]?.Value;
+  const lastDir  = dirLog[dirLog.length - 1]?.Value;
+  const maxGust  = gustLog.length ? Math.max(...gustLog.map(s => s.Value)) : null;
+  const avgSpd   = spdLog.reduce((a, b) => a + b.Value, 0) / spdLog.length;
+  const lastTs   = spdLog[spdLog.length - 1]?.Timestamp;
+
+  if (stData[id]) stData[id].max24h = maxGust;
+  renderLeaderboard(allStations.filter(s => stData[s.Id]?.speed != null));
+
+  document.getElementById("sNow").innerHTML  = lastSpd != null ? `${lastSpd.toFixed(1)}<span class="stat-unit">m/s</span>` : "—";
+  document.getElementById("sGust").innerHTML = maxGust != null ? `${maxGust.toFixed(1)}<span class="stat-unit">m/s</span>` : "—";
+  document.getElementById("sAvg").innerHTML  = `${avgSpd.toFixed(1)}<span class="stat-unit">m/s</span>`;
+  document.getElementById("sDir").innerHTML  = dirLabel(lastDir);
+  document.getElementById("dMeta").textContent =
+    lastTs ? `Siste måling: ${new Date(lastTs).toLocaleString("no")}` : "";
+
+  station._spdLog  = spdLog;
+  station._gustLog = gustLog;
+  renderChart(spdLog, gustLog, aggMinutes);
+}
+
+function renderChart(spdLog, gustLog, minutes) {
+  const spdAgg  = aggregate(spdLog, minutes);
+  const gustAgg = aggregate(gustLog, minutes);
+  const labels  = spdAgg.map(p =>
+    p.t.toLocaleTimeString("no", { hour: "2-digit", minute: "2-digit" }));
+
+  if (chart) { chart.destroy(); chart = null; }
+
+  chart = new Chart(document.getElementById("windChart").getContext("2d"), {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Vindstyrke (m/s)",
+          data: spdAgg.map(p => +p.avg.toFixed(1)),
+          borderColor: "hsl(190,80%,50%)",
+          backgroundColor: "hsla(190,80%,50%,.08)",
+          fill: true, tension: .3, borderWidth: 2,
+          pointRadius: spdAgg.length > 80 ? 0 : 3,
+        },
+        {
+          label: "Kast (m/s)",
+          data: gustAgg.map(p => +p.max.toFixed(1)),
+          borderColor: "hsl(25,90%,60%)",
+          backgroundColor: "transparent",
+          fill: false, tension: .3, borderWidth: 1.5,
+          pointRadius: 0, borderDash: [4, 3],
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { labels: { color: "rgba(255,255,255,.55)", font: { size: 12 } } },
+        tooltip: { backgroundColor: "rgba(8,8,20,.92)", titleColor: "#fff", bodyColor: "rgba(255,255,255,.7)" }
+      },
+      scales: {
+        x: { ticks: { color: "rgba(255,255,255,.35)", maxTicksLimit: 8, font: { size: 11 } }, grid: { color: "rgba(255,255,255,.05)" } },
+        y: { ticks: { color: "rgba(255,255,255,.35)", font: { size: 11 } }, grid: { color: "rgba(255,255,255,.05)" }, min: 0 }
+      }
+    }
+  });
+}
+
+// Window toggle
+document.getElementById("winSeg").querySelectorAll("button").forEach(btn =>
+  btn.addEventListener("click", function() {
+    document.getElementById("winSeg").querySelectorAll("button").forEach(b => b.classList.remove("active"));
+    this.classList.add("active");
+    windowHours = +this.dataset.h;
+    closeDetail();
+    loadLeaderboard();
+  }));
+
+// Aggregation toggle
+document.getElementById("aggSeg").querySelectorAll("button").forEach(btn =>
+  btn.addEventListener("click", function() {
+    document.getElementById("aggSeg").querySelectorAll("button").forEach(b => b.classList.remove("active"));
+    this.classList.add("active");
+    aggMinutes = +this.dataset.m;
+    if (selected?._spdLog) renderChart(selected._spdLog, selected._gustLog, aggMinutes);
+  }));
+
+function closeDetail() {
+  document.getElementById("detail").style.display = "none";
+  selected = null;
+  if (chart) { chart.destroy(); chart = null; }
+  document.querySelectorAll(".lb-row").forEach(r => r.classList.remove("selected"));
+}
+
+document.getElementById("closeBtn").addEventListener("click", closeDetail);
+document.getElementById("refreshBtn").addEventListener("click", () => { closeDetail(); loadLeaderboard(); });
+
+loadLeaderboard();
+</script>
+</body>
+</html>

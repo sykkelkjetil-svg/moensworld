@@ -29,6 +29,8 @@
       card_kyst_desc:     'Vindoversikt fra Kystverkets database med visualisering.',
       card_skagen_title:  'Skagen Race Simulator',
       card_skagen_desc:   'Racesimulator for offshore-regattaer med ekte ORC-polærdata. Last inn hvilken som helst manage2sail-regatta og se hvem som vinner på faktisk og korrigert tid.',
+      card_vindstat_title:'Vindstatistikk',
+      card_vindstat_desc: 'Live leaderboard over vindstasjoner langs kysten med 24t historikk og aggregering per 10 min, time eller døgn. Støtter stormnavn via URL.',
 
       // ── BikeFit ─────────────────────────────────────────────────────────────
       bf_sub:            'Finn din perfekte sykkelposisjon',
@@ -233,6 +235,8 @@
       card_kyst_desc:     'Wind overview from the Norwegian Coastal Administration database with visualisation.',
       card_skagen_title:  'Skagen Race Simulator',
       card_skagen_desc:   'Race simulator for offshore regattas using real ORC polar data. Load any manage2sail regatta and see who wins on actual and corrected time.',
+      card_vindstat_title:'Wind Statistics',
+      card_vindstat_desc: 'Live leaderboard of coastal wind stations with 24h history and 10-min / hourly / daily aggregation. Pass a storm name via URL.',
 
       bf_sub:            'Find your perfect bike position',
       bf_s1:             'Mode', bf_s2: 'Bike type', bf_s3: 'Riding style',
